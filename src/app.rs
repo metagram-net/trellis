@@ -1,29 +1,19 @@
 use yew::prelude::*;
 
-pub struct App {
-    link: ComponentLink<Self>,
-    value: i64,
-}
+mod clock;
 
-pub enum Msg {
-    AddOne,
-}
+pub struct App {}
 
 impl Component for App {
-    type Message = Msg;
+    type Message = ();
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { link, value: 0 }
+    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
+        Self {}
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Msg::AddOne => {
-                self.value += 1;
-                true
-            }
-        }
+    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
+        false
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -32,9 +22,8 @@ impl Component for App {
 
     fn view(&self) -> Html {
         html! {
-            <div>
-                <button class="btn btn-gray" onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
-                <p>{ self.value }</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <clock::Clock />
             </div>
         }
     }
