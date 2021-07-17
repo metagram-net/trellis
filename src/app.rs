@@ -33,7 +33,7 @@ impl Component for App {
     fn view(&self) -> Html {
         html! {
             <div>
-                <button onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
+                <button class="btn btn-gray" onclick=self.link.callback(|_| Msg::AddOne)>{ "+1" }</button>
                 <p>{ self.value }</p>
             </div>
         }
