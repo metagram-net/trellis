@@ -1,4 +1,5 @@
 const path = require("path");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
@@ -22,8 +23,17 @@ module.exports = (env, argv) => ({
     new WasmPackPlugin({
       crateDirectory: crate,
     }),
+    new MiniCssExtractPlugin(),
   ],
   mode: argv.mode || "development",
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader", "postcss-loader"],
+      },
+    ],
+  },
   experiments: {
     asyncWebAssembly: true,
   },
