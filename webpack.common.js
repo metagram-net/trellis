@@ -5,12 +5,7 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 const crate = path.resolve(__dirname, ".");
 const dist = path.resolve(__dirname, "dist");
-module.exports = (env, argv) => ({
-  devServer: {
-    contentBase: dist,
-    compress: argv.mode === "production",
-    port: 8000,
-  },
+module.exports = {
   entry: "./index.js",
   output: {
     filename: "index.js",
@@ -25,7 +20,6 @@ module.exports = (env, argv) => ({
     }),
     new MiniCssExtractPlugin(),
   ],
-  mode: argv.mode || "development",
   module: {
     rules: [
       {
@@ -37,4 +31,4 @@ module.exports = (env, argv) => ({
   experiments: {
     asyncWebAssembly: true,
   },
-});
+};

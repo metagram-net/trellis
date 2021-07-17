@@ -1,11 +1,25 @@
 [tasks.dev]
-dependencies = ['build', 'serve']
+dependencies = ['build', 'npm-serve']
 watch = true
 
 [tasks.build]
 command = 'cargo'
-args = ['build']
+args = ['build', "@@remove-empty(BUILD_FLAGS)"]
 
-[tasks.serve]
+[tasks.npm-serve]
 command = 'npm'
 args = ['run', 'serve']
+
+[tasks.release]
+dependencies = ['clean', 'build', 'npm-build']
+
+[tasks.npm-build]
+command = 'npm'
+args = ['run', 'build']
+
+[tasks.clean]
+command = 'rm'
+args = ['-rf', 'dist', 'pkg']
+
+[env.production]
+BUILD_FLAGS = '--release'
