@@ -1,0 +1,11 @@
+[tasks.dev]
+dependencies = ['build', 'serve']
+watch = true
+
+[tasks.build]
+command = 'cargo'
+args = ['build']
+
+[tasks.serve]
+command = 'npm'
+args = ['run', 'serve']
