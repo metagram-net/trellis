@@ -18,4 +18,4 @@ RUN mkdir /tmp/wasm-pack \
 WORKDIR /app
 COPY . .
 
-CMD ["make", "release"]
+RUN make release
