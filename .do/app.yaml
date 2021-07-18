@@ -1,0 +1,9 @@
+name: trellis
+static_sites:
+  - name: trellis
+    github:
+      repo: metagram-net/trellis
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: .do/Dockerfile
+    output_dir: /app/dist
