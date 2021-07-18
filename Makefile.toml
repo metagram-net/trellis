@@ -1,27 +1,7 @@
 [tasks.watch]
-dependencies = ['build-development', 'npm-serve']
+dependencies = ['build', 'npm-serve']
 watch = true
-
-[tasks.build-development]
-command = 'cargo'
-args = ['build']
-
-[tasks.build-release]
-command = 'cargo'
-args = ['build', '--release']
 
 [tasks.npm-serve]
 command = 'npm'
 args = ['run', 'serve']
-
-[tasks.release]
-env = { BUILD_FLAGS = '--release' }
-dependencies = ['clean', 'build-release', 'npm-build']
-
-[tasks.npm-build]
-command = 'npm'
-args = ['run', 'build']
-
-[tasks.clean]
-command = 'rm'
-args = ['-rf', 'dist', 'pkg']

@@ -5,5 +5,5 @@ static_sites:
       repo: metagram-net/trellis
       branch: main
       deploy_on_push: true
-    dockerfile_path: .do/Dockerfile
+    dockerfile_path: Dockerfile
     output_dir: /app/dist
