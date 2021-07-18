@@ -17,6 +17,7 @@ release: ## Remove output files
 .PHONY: release
 release: clean ## Build app in release mode
 	cargo build --release
+	npm install
 	npm run build
 
 .PHONY: watch
