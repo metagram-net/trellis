@@ -2,6 +2,7 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
 module.exports = {
@@ -9,8 +10,23 @@ module.exports = {
   output: {
     filename: "index.js",
     path: path.resolve(__dirname, "dist"),
+    publicPath: "/",
   },
   plugins: [
+    new WebpackPwaManifest({
+      name: "Trellis",
+      background_color: "#084908",
+      theme_color: "#084908",
+      display: "standalone",
+      start_url: "/",
+      scope: "/",
+      icons: [
+        {
+          src: path.resolve(__dirname, "icon.png"),
+          sizes: [192, 512],
+        },
+      ],
+    }),
     new HtmlWebpackPlugin({
       title: "Trellis",
     }),
