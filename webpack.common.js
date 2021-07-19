@@ -2,6 +2,7 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
+const WorkboxPlugin = require("workbox-webpack-plugin");
 
 module.exports = {
   entry: "./index.js",
@@ -17,6 +18,7 @@ module.exports = {
       crateDirectory: path.resolve(__dirname, "."),
     }),
     new MiniCssExtractPlugin(),
+    new WorkboxPlugin.GenerateSW({}),
   ],
   module: {
     rules: [
