@@ -1,7 +1,0 @@
-[tasks.watch]
-dependencies = ['build', 'npm-serve']
-watch = true
-
-[tasks.npm-serve]
-command = 'npm'
-args = ['run', 'serve']

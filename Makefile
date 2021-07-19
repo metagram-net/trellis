@@ -21,4 +21,4 @@ release: clean ## Build app in release mode
 
 .PHONY: watch
 watch: ## Run a development server, automatically rebuilding on file changes
-	cargo make watch
+	npm run serve
