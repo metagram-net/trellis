@@ -11,7 +11,7 @@ build: ## Build app in development mode
 	cargo make build-development
 
 .PHONY: clean
-release: ## Remove output files
+clean: ## Remove output files
 	rm -rf dist
 
 .PHONY: release
