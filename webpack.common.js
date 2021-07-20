@@ -13,6 +13,9 @@ module.exports = {
     publicPath: "/",
   },
   plugins: [
+    new WorkboxPlugin.InjectManifest({
+      swSrc: path.resolve(__dirname, "service_worker.js"),
+    }),
     new WebpackPwaManifest({
       name: "Trellis",
       background_color: "#084908",
@@ -34,7 +37,6 @@ module.exports = {
       crateDirectory: path.resolve(__dirname, "."),
     }),
     new MiniCssExtractPlugin(),
-    new WorkboxPlugin.GenerateSW({}),
   ],
   module: {
     rules: [
