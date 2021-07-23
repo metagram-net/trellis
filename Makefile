@@ -7,8 +7,8 @@ help: ## List targets in this Makefile
 		| sort --dictionary-order
 
 .PHONY: build
-build: ## Build app in development mode
-	cargo make build-development
+build: ## Build Rust assets in development mode
+	cargo make build
 
 .PHONY: clean
 clean: ## Remove output files
