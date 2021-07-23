@@ -1,4 +1,4 @@
-use anyhow;
+use anyhow::{self, format_err};
 use chrono::{DateTime, Local};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -79,6 +79,11 @@ impl Component for Weather {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Fetch => {
+                if &self.props.owm_api_key == "" {
+                    self.error = Some(format_err!("Missing OpenWeatherMap API key"));
+                    return true;
+                }
+
                 let mut url = OWM_URL.clone();
                 url.set_path("data/2.5/weather");
                 url.query_pairs_mut()
@@ -148,6 +153,9 @@ impl Weather {
     fn view_loading(&self) -> Html {
         html! {
             <div class="flex flex-col items-center justify-around w-full h-full">
+                <div class="text-xl text-red-500">
+                    {self.error.as_ref().map_or(String::new(), |e| e.to_string())}
+                </div>
                 <p>{"Loading..."}</p>
             </div>
         }
