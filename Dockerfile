@@ -18,4 +18,4 @@ RUN mkdir /tmp/wasm-pack \
 WORKDIR /app
 COPY . .
 
-RUN make release
+RUN make release && rm -rf node_modules pkg target
