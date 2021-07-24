@@ -16,5 +16,17 @@ release: clean ## Build app in release mode
 	npm run build
 
 .PHONY: watch
-watch: ## Run a development server, automatically rebuilding on file changes
+watch: ## Run both development servers, automatically rebuilding on file changes
+	docker-compose up -d
+	parallel --line-buffer --tagstring '[{}]' --verbose make ::: \
+		watch-server \
+		watch-web \
+		| perl -pe 's/\t/ /'
+
+.PHONY: watch-server
+watch-server: ## Run backend server, automatically rebuilding on file changes
+	cargo watch --exec run --workdir trellis-server
+
+.PHONY: watch-web
+watch-web: ## Run frontend server, automatically rebuilding on file changes
 	npm run serve

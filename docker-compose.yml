@@ -1,0 +1,10 @@
+services:
+  db:
+    image: postgres:12
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      # This is only for local development, so this is fine!
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
