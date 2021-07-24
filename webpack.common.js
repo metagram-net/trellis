@@ -34,7 +34,7 @@ module.exports = {
       title: "Trellis",
     }),
     new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, "."),
+      crateDirectory: path.resolve(__dirname, "trellis-web"),
     }),
     new MiniCssExtractPlugin(),
   ],

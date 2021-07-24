@@ -6,10 +6,6 @@ help: ## List targets in this Makefile
 		| column --separator $$'\t' --table --table-wrap 2 --output-separator '    ' \
 		| sort --dictionary-order
 
-.PHONY: build
-build: ## Build Rust assets in development mode
-	cargo make build
-
 .PHONY: clean
 clean: ## Remove output files
 	rm -rf dist
