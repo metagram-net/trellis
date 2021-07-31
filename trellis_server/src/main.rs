@@ -41,8 +41,7 @@ async fn load(
     match res {
         Ok(row) => Ok(Some(Json(row.data))),
         Err(err) => {
-            // TODO: Real logging
-            println!("{}", err);
+            log::error!("{}", err);
             Ok(None)
         }
     }
@@ -78,8 +77,7 @@ async fn save(
         .await;
 
     if let Err(err) = res {
-        // TODO: Real logging
-        println!("{}", err);
+        log::error!("{}", err);
         return Err(status::Unauthorized(Some("Unauthorized")));
     }
 
