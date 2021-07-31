@@ -68,7 +68,6 @@ async fn save(
 
     let res = db
         .run(move |c| {
-            // TODO: This needs to be an upsert lol
             diesel::insert_into(schema::settings::table)
                 .values(&new_settings)
                 .on_conflict(dsl::user_id)

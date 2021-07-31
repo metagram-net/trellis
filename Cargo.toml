@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "trellis-server",
-    "trellis-web",
+    "trellis_server",
+    "trellis_web",
 ]

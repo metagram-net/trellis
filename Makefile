@@ -28,7 +28,7 @@ watch: ## Run both development servers, automatically rebuilding on file changes
 
 .PHONY: watch-server
 watch-server: ## Run backend server, automatically rebuilding on file changes
-	cargo watch --exec run --workdir trellis-server
+	cargo watch --exec run --workdir trellis_server
 
 .PHONY: watch-web
 watch-web: ## Run frontend server, automatically rebuilding on file changes

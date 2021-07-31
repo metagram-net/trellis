@@ -1,4 +1,4 @@
-import { run } from "./trellis-web/pkg";
+import { run } from "./trellis_web/pkg";
 
 import "./styles.css";
 

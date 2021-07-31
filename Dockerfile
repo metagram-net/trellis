@@ -18,4 +18,4 @@ RUN mkdir /tmp/wasm-pack \
 WORKDIR /app
 COPY . .
 
-RUN make release && rm -rf node_modules pkg target trellis-web/pkg trellis-web/target
+RUN make release && rm -rf node_modules pkg target trellis_web/pkg trellis_web/target

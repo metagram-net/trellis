@@ -195,7 +195,6 @@ impl Weather {
                         {format!("Last updated at: {}", last_updated)}
                     </div>
                 </div>
-                <a href="#">{"Edit"}</a>
             </div>
         }
     }
