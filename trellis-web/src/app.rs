@@ -5,6 +5,7 @@ use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 mod clock;
+mod note;
 mod settings;
 mod weather;
 
@@ -112,7 +113,7 @@ impl App {
         html! {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 <p class="text-xl">{"Loading..."}</p>
-                </div>
+            </div>
         }
     }
 
@@ -129,10 +130,10 @@ impl App {
         html! {
             <form>
                 <textarea class="w-full" rows=rows ref=self.textarea_ref.clone()>
-                {text}
-            </textarea>
+                    {text}
+                </textarea>
                 <button onclick=onclick class="btn btn-gray">{ "Save" }</button>
-                </form>
+            </form>
         }
     }
 
@@ -142,8 +143,9 @@ impl App {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 <clock::Clock />
                 <weather::Weather with self.settings.weather.clone() />
+                <note::Note />
                 <button onclick=onclick class="btn btn-gray">{ "Settings" }</button>
-                </div>
+            </div>
         }
     }
 
