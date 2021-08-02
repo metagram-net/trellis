@@ -100,8 +100,7 @@ async fn authenticate(
 ) -> Result<Redirect, status::Unauthorized<&'static str>> {
     if let Some(t) = token {
         if let Ok(user) = auth::authenticate(t) {
-            // TODO: Set `secure` when serving HTTPS
-            cookies.add_private(Cookie::new("session", user.user_id));
+            cookies.add_private(Cookie::build("session", user.user_id).secure(true).finish());
             return Ok(Redirect::to("/"));
         }
     }
