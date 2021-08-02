@@ -1,7 +1,6 @@
 [package]
 name = "trellis_web"
 version = "0.1.0"
-authors = ["Jeremy Kaplan <jdkaplan@metagram.net>"]
 edition = "2018"
 
 [lib]
