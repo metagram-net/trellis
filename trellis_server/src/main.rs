@@ -3,13 +3,15 @@ extern crate diesel;
 #[macro_use]
 extern crate rocket;
 
+use anyhow;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use rocket::http::{Cookie, CookieJar};
+use rocket::http::{Cookie, CookieJar, Status};
 use rocket::response::{status, Redirect};
 use rocket::serde::json::Json;
 use rocket_sync_db_pools::database;
 use serde_json::Value; // TODO: Use an auto-migrating version struct
+use trellis_core;
 
 mod auth;
 pub mod models;
@@ -18,36 +20,49 @@ pub mod schema;
 #[database("trellis")]
 struct DbConn(PgConnection);
 
-#[get("/load")]
-async fn load(
-    db: DbConn,
-    cookies: &CookieJar<'_>,
-) -> Result<Option<Json<Value>>, status::Unauthorized<&'static str>> {
+async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<trellis_core::Settings>> {
     use schema::settings::dsl::*;
-
-    let uid = match cookies.get_private("session") {
-        None => return Err(status::Unauthorized(Some("Unauthorized"))),
-        Some(cookie) => String::from(cookie.value()),
-    };
-
-    let res: QueryResult<models::Settings> = db
+    let res = db
         .run(move |c| {
             settings
                 .filter(user_id.eq(uid))
                 .first::<models::Settings>(c)
         })
-        .await;
+        .await
+        .optional()?;
 
     match res {
-        Ok(row) => Ok(Some(Json(row.data))),
+        Some(row) => Ok(Some(serde_json::from_value::<trellis_core::Settings>(
+            row.data,
+        )?)),
+        None => Ok(None),
+    }
+}
+
+#[get("/load")]
+async fn load(
+    db: DbConn,
+    cookies: &CookieJar<'_>,
+) -> Result<Option<Json<trellis_core::Settings>>, status::Custom<&'static str>> {
+    let user_id = match cookies.get_private("session") {
+        None => return Err(status::Custom(Status::Unauthorized, "Unauthorized")),
+        Some(cookie) => String::from(cookie.value()),
+    };
+
+    match load_settings(db, user_id).await {
+        Ok(Some(settings)) => Ok(Some(Json(settings))),
+        Ok(None) => Ok(None),
         Err(err) => {
             log::error!("{}", err);
-            Ok(None)
+            Err(status::Custom(
+                Status::InternalServerError,
+                "Internal Server Error",
+            ))
         }
     }
 }
 
-#[post("/save", format = "json", data = "<data>")]
+#[post("/save", data = "<data>")]
 async fn save(
     db: DbConn,
     cookies: &CookieJar<'_>,
@@ -76,13 +91,14 @@ async fn save(
         })
         .await;
 
-    if let Err(err) = res {
-        log::error!("{}", err);
-        return Err(status::Unauthorized(Some("Unauthorized")));
+    match res {
+        // TODO: Meaningful return value
+        Ok(_) => Ok("{}"),
+        Err(err) => {
+            log::error!("{}", err);
+            return Err(status::Unauthorized(Some("Unauthorized")));
+        }
     }
-
-    // TODO: Meaningful return value
-    Ok("{}")
 }
 
 /// Handles HEAD requests as a no-op. This prevents some link sanitizers from consuming the magic

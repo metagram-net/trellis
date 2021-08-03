@@ -5,12 +5,16 @@ use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
 mod clock;
+mod loading;
 mod note;
 mod settings;
 mod weather;
 
+// TODO: Make a settings agent that abstracts LocalStorage and backend storage
+
 pub struct App {
     link: ComponentLink<Self>,
+    // TODO: trellis_core::Settings,
     settings: settings::Settings,
     state: State,
     textarea_ref: NodeRef,
@@ -36,6 +40,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        // TODO: Loading spinner while waiting for settings to sync.
         link.send_message(Msg::FetchSettings);
 
         Self {

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
+anyhow = "1.0"
 chrono = { version = "0.4" }
 diesel = { version = "1.4.4", features = ["chrono", "postgres", "serde_json", "uuidv07"] }
 log = "0.4"
@@ -11,4 +12,5 @@ rocket_sync_db_pools = { version = "0.1.0-rc.1", features = ["diesel_postgres_po
 rocket = { version = "0.5.0-rc.1", features = ["json", "secrets"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+trellis_core = { path = "../trellis_core" }
 uuid = { version = "0.8", features = ["serde"] }
