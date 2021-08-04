@@ -4,8 +4,8 @@ use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
 
+mod board;
 mod clock;
-mod loading;
 mod note;
 mod settings;
 mod weather;
@@ -14,15 +14,14 @@ mod weather;
 
 pub struct App {
     link: ComponentLink<Self>,
-    // TODO: trellis_core::Settings,
-    settings: settings::Settings,
+    settings: trellis_core::Settings,
     state: State,
     textarea_ref: NodeRef,
 }
 
 pub enum Msg {
     FetchSettings,
-    ReceiveSettings(Result<settings::Settings, anyhow::Error>),
+    ReceiveSettings(Result<trellis_core::Settings, anyhow::Error>),
     EditSettings,
     SaveSettings,
     SavedSettings,
@@ -45,7 +44,7 @@ impl Component for App {
 
         Self {
             link,
-            settings: settings::Settings::load(),
+            settings: trellis_core::Settings::default(),
             textarea_ref: NodeRef::default(),
             state: State::Viewing,
         }
@@ -82,12 +81,11 @@ impl Component for App {
                     .cast::<HtmlTextAreaElement>()
                     .unwrap()
                     .value();
-                if let Ok(settings) = serde_json::from_str::<settings::Settings>(&text) {
-                    if let Ok(_) = settings.save() {
-                        self.state = State::Saving(self.send_settings(settings.clone()));
-                        self.settings = settings;
-                        return true;
-                    }
+                if let Ok(settings) = serde_json::from_str::<trellis_core::Settings>(&text) {
+                    // TODO: Save settings to localstorage first
+                    self.state = State::Saving(self.send_settings(settings.clone()));
+                    self.settings = settings;
+                    return true;
                 }
                 self.state = State::Editing;
                 true
@@ -115,15 +113,14 @@ impl Component for App {
 
 impl App {
     fn view_loading(&self) -> Html {
-        html! {
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <p class="text-xl">{"Loading..."}</p>
-            </div>
-        }
+        html! { <p class="text-xl">{"Loading..."}</p> }
     }
 
     fn view_settings(&self) -> Html {
-        let onclick = self.link.callback(|_| Msg::SaveSettings);
+        let onsubmit = self.link.callback(|e: FocusEvent| {
+            e.prevent_default();
+            Msg::SaveSettings
+        });
         let text =
             serde_json::to_string_pretty(&self.settings).expect("Could not serialize settings");
         let rows = format!(
@@ -133,11 +130,11 @@ impl App {
         );
 
         html! {
-            <form>
+            <form onsubmit=onsubmit>
                 <textarea class="w-full" rows=rows ref=self.textarea_ref.clone()>
                     {text}
                 </textarea>
-                <button onclick=onclick class="btn btn-gray">{ "Save" }</button>
+                <button type="submit" class="btn btn-gray">{ "Save" }</button>
             </form>
         }
     }
@@ -145,12 +142,10 @@ impl App {
     fn view_board(&self) -> Html {
         let onclick = self.link.callback(|_| Msg::EditSettings);
         html! {
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <clock::Clock />
-                <weather::Weather with self.settings.weather.clone() />
-                <note::Note />
-                <button onclick=onclick class="btn btn-gray">{ "Settings" }</button>
-            </div>
+            <>
+                <board::Board settings=trellis_core::Settings::default() />
+                <button type="button" onclick=onclick class="btn btn-gray">{ "Settings" }</button>
+            </>
         }
     }
 
@@ -159,7 +154,7 @@ impl App {
             .body(Nothing)
             .expect("could not build request");
         let callback = self.link.callback(
-            |response: Response<Json<anyhow::Result<settings::Settings>>>| {
+            |response: Response<Json<anyhow::Result<trellis_core::Settings>>>| {
                 let Json(data) = response.into_body();
                 Msg::ReceiveSettings(data)
             },
@@ -167,7 +162,7 @@ impl App {
         FetchService::fetch(request, callback).expect("could not start request")
     }
 
-    fn send_settings(&self, settings: settings::Settings) -> FetchTask {
+    fn send_settings(&self, settings: trellis_core::Settings) -> FetchTask {
         let request = Request::post("/api/v1/save")
             .header("Content-Type", "application/json")
             .body(Json(&settings))

@@ -36,7 +36,7 @@ async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<trellis
         Some(row) => Ok(Some(serde_json::from_value::<trellis_core::Settings>(
             row.data,
         )?)),
-        None => Ok(None),
+        None => Ok(Some(trellis_core::Settings::default())),
     }
 }
 

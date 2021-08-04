@@ -13,6 +13,11 @@ pub struct Note {
     text: String,
 }
 
+#[derive(Properties, Clone, Debug)]
+pub struct Props {
+    pub text: String,
+}
+
 pub enum Msg {
     Edited,
     Saved,
@@ -24,13 +29,14 @@ impl Note {
 
 impl Component for Note {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        // TODO: Merge text?
         let text = StorageService::new(Area::Local)
             .ok()
             .and_then(|storage| storage.restore::<anyhow::Result<String>>(Self::KEY).ok())
-            .unwrap_or_default();
+            .unwrap_or(props.text);
         Self {
             link: link.clone(),
             textarea_ref: NodeRef::default(),

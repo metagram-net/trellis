@@ -26,18 +26,18 @@ pub enum Data {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Tile {
-    id: Uuid,
+    pub id: Uuid,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    row: Option<u32>,
+    pub row: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    col: Option<u32>,
+    pub col: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    width: Option<u32>,
+    pub width: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    height: Option<u32>,
+    pub height: Option<u32>,
 
-    data: Data,
+    pub data: Data,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -54,6 +54,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             secrets: Secrets { owm_api_key: None },
+            // TODO: Put instructions in a text tile
             tiles: vec![],
         }
     }
