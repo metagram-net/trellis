@@ -10,7 +10,8 @@ use rocket::http::{Cookie, CookieJar, Status};
 use rocket::response::{status, Redirect};
 use rocket::serde::json::Json;
 use rocket_sync_db_pools::database;
-use serde_json::Value; // TODO: Use an auto-migrating version struct
+use serde_json::map::Map;
+use serde_json::Value::{self, Object};
 use trellis_core;
 
 mod auth;
@@ -67,7 +68,7 @@ async fn save(
     db: DbConn,
     cookies: &CookieJar<'_>,
     data: Json<Value>,
-) -> Result<&'static str, status::Unauthorized<&'static str>> {
+) -> Result<Json<Value>, status::Unauthorized<&'static str>> {
     use schema::settings::dsl;
 
     let uid = match cookies.get_private("session") {
@@ -92,8 +93,7 @@ async fn save(
         .await;
 
     match res {
-        // TODO: Meaningful return value
-        Ok(_) => Ok("{}"),
+        Ok(_) => Ok(Json(Object(Map::new()))),
         Err(err) => {
             log::error!("{}", err);
             return Err(status::Unauthorized(Some("Unauthorized")));
