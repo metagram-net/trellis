@@ -24,6 +24,7 @@ pub enum Msg {
 }
 
 impl Note {
+    // TODO: Store to the settings blob instead of letting them clobber a shared key!
     const KEY: &'static str = "trellis.note";
 }
 
