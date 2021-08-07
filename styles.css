@@ -8,7 +8,7 @@
   }
 
   body {
-    @apply bg-white dark:bg-black;
+    @apply text-black bg-white dark:text-white dark:bg-black;
   }
 
   h1 {
@@ -68,13 +68,13 @@
   [multiple],
   textarea,
   select {
-    @apply dark:bg-black dark:text-white;
+    @apply bg-white text-black dark:bg-black dark:text-white;
   }
 
   button,
   [type="button"],
   [type="reset"],
   [type="submit"] {
-    @apply dark:border-gray-700 dark:bg-gray-800;
+    @apply border-gray-400 bg-gray-400 dark:border-gray-700 dark:bg-gray-800;
   }
 }
