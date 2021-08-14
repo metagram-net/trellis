@@ -1,15 +1,13 @@
 use serde_json;
 use trellis_core::config;
+use uuid::Uuid;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
-mod board;
 mod clock;
 mod note;
 mod settings;
 mod weather;
-
-// TODO: Make a settings agent that abstracts LocalStorage and backend storage
 
 pub struct App {
     link: ComponentLink<Self>,
@@ -24,6 +22,7 @@ pub enum Msg {
     ReceiveSettings(config::Config),
     EditSettings,
     SaveSettings,
+    SaveSingle { id: Uuid, data: config::Data },
 }
 
 enum State {
@@ -83,6 +82,11 @@ impl Component for App {
                 self.state = State::Editing;
                 true
             }
+            Msg::SaveSingle { id, data } => {
+                self.settings_service
+                    .send(settings::Request::SaveSingle { id, data });
+                true
+            }
         }
     }
 
@@ -129,11 +133,43 @@ impl App {
 
     fn view_board(&self) -> Html {
         let onclick = self.link.callback(|_| Msg::EditSettings);
+
+        let tiles = self.settings.tiles.clone();
+        let secrets = self.settings.secrets.clone();
+
         html! {
             <>
-                <board::Board settings=self.settings.clone() />
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
+                </div>
                 <button type="button" onclick=onclick class="btn btn-gray">{ "Settings" }</button>
             </>
+        }
+    }
+
+    fn render_tile(&self, tile: config::Tile, secrets: config::Secrets) -> Html {
+        let id = tile.id.clone();
+        // TODO: Wrap all of these in tile/grid-cell boilerplate
+        match &tile.data {
+            config::Data::Clock => html! { <clock::Clock id=id /> },
+            config::Data::Weather { location_id } => {
+                html! {
+                    <weather::Weather
+                        id=id
+                        location_id=location_id.clone()
+                        owm_api_key=secrets.owm_api_key.clone().unwrap_or("".to_owned())
+                    />
+                }
+            }
+            config::Data::Note { text } => html! {
+                <note::Note
+                    id=id
+                    text=text.clone()
+                    onchange=self.link.callback(move |text| {
+                        Msg::SaveSingle{id, data: config::Data::Note{ text }}
+                    })
+                />
+            },
         }
     }
 }

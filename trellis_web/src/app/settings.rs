@@ -12,7 +12,7 @@ use yew::worker::*;
 pub enum Request {
     Save(config::Config),
     Load,
-    SaveNote { id: uuid::Uuid, text: String },
+    SaveSingle { id: uuid::Uuid, data: config::Data },
 }
 
 pub struct Settings {
@@ -106,7 +106,7 @@ impl Agent for Settings {
                 let cfg = self.load();
                 self.broadcast(cfg);
             }
-            Request::SaveNote { id, text } => {
+            Request::SaveSingle { id, data } => {
                 let mut new_tiles: Vec<config::Tile> = Vec::new();
                 for tile in self.settings.tiles.iter() {
                     if tile.id != id {
@@ -118,7 +118,7 @@ impl Agent for Settings {
                             col: tile.col,
                             width: tile.width,
                             height: tile.height,
-                            data: config::Data::Note { text: text.clone() },
+                            data: data.clone(),
                         })
                     }
                 }

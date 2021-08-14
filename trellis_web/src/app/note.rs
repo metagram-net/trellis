@@ -1,6 +1,4 @@
-use super::settings;
 use std::time::Duration;
-use trellis_core::config;
 use uuid;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
@@ -14,19 +12,18 @@ pub struct Note {
     form_ref: NodeRef,
     textarea_ref: NodeRef,
     debounce: Option<TimeoutTask>,
-    settings_service: Box<dyn Bridge<settings::Settings>>,
 }
 
 #[derive(Properties, Clone, Debug)]
 pub struct Props {
     pub id: uuid::Uuid,
     pub text: String,
+    pub onchange: Callback<String>,
 }
 
 pub enum Msg {
     Edited,
     Saved,
-    ReceiveSettings(config::Config),
 }
 
 impl Note {
@@ -49,7 +46,6 @@ impl Component for Note {
             textarea_ref: NodeRef::default(),
             form_ref: NodeRef::default(),
             debounce: None,
-            settings_service: settings::Settings::bridge(link.callback(Msg::ReceiveSettings)),
         }
     }
 
@@ -69,12 +65,12 @@ impl Component for Note {
                     .cast::<HtmlTextAreaElement>()
                     .unwrap()
                     .value();
-                if let Err(err) = self.save(text) {
+                if let Err(err) = self.save(text.clone()) {
                     ConsoleService::error(err);
                 }
+                self.props.onchange.emit(text);
                 true
             }
-            Msg::ReceiveSettings(settings) => true,
         }
     }
 
