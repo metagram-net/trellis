@@ -1,9 +1,17 @@
 use chrono::{offset, DateTime, Local};
 use std::time::Duration;
+use uuid;
 use yew::prelude::*;
 use yew::services::interval::{IntervalService, IntervalTask};
 
+#[derive(Properties, Clone, Debug)]
+pub struct Props {
+    pub id: uuid::Uuid,
+}
+
 pub struct Clock {
+    #[allow(dead_code)]
+    props: Props,
     time: DateTime<Local>,
     #[allow(dead_code)]
     ticker: IntervalTask,
@@ -11,10 +19,11 @@ pub struct Clock {
 
 impl Component for Clock {
     type Message = ();
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
+            props,
             time: Local::now(),
             ticker: IntervalService::spawn(Duration::from_millis(1000), link.callback(|_| ())),
         }

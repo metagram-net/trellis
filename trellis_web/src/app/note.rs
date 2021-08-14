@@ -1,4 +1,7 @@
+use super::settings;
 use std::time::Duration;
+use trellis_core::config;
+use uuid;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 use yew::services::console::ConsoleService;
@@ -6,26 +9,33 @@ use yew::services::storage::{Area, StorageService};
 use yew::services::timeout::{TimeoutService, TimeoutTask};
 
 pub struct Note {
+    props: Props,
     link: ComponentLink<Self>,
     form_ref: NodeRef,
     textarea_ref: NodeRef,
     debounce: Option<TimeoutTask>,
-    text: String,
+    settings_service: Box<dyn Bridge<settings::Settings>>,
 }
 
 #[derive(Properties, Clone, Debug)]
 pub struct Props {
+    pub id: uuid::Uuid,
     pub text: String,
 }
 
 pub enum Msg {
     Edited,
     Saved,
+    ReceiveSettings(config::Config),
 }
 
 impl Note {
     // TODO: Store to the settings blob instead of letting them clobber a shared key!
     const KEY: &'static str = "trellis.note";
+
+    fn save(&mut self, text: String) -> Result<(), &str> {
+        StorageService::new(Area::Local).map(|mut storage| storage.store(Self::KEY, Ok(text)))
+    }
 }
 
 impl Component for Note {
@@ -33,17 +43,13 @@ impl Component for Note {
     type Properties = Props;
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        // TODO: Merge text?
-        let text = StorageService::new(Area::Local)
-            .ok()
-            .and_then(|storage| storage.restore::<anyhow::Result<String>>(Self::KEY).ok())
-            .unwrap_or(props.text);
         Self {
+            props,
             link: link.clone(),
             textarea_ref: NodeRef::default(),
             form_ref: NodeRef::default(),
             debounce: None,
-            text,
+            settings_service: settings::Settings::bridge(link.callback(Msg::ReceiveSettings)),
         }
     }
 
@@ -63,18 +69,26 @@ impl Component for Note {
                     .cast::<HtmlTextAreaElement>()
                     .unwrap()
                     .value();
-                let save = StorageService::new(Area::Local)
-                    .map(|mut storage| storage.store(Self::KEY, Ok(text)));
-                if let Err(err) = save {
+                if let Err(err) = self.save(text) {
                     ConsoleService::error(err);
-                };
+                }
                 true
             }
+            Msg::ReceiveSettings(settings) => true,
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        // If a save is waiting, let it win.
+        //
+        // TODO: Maybe do a three-way merge?
+        match self.debounce {
+            Some(_) => false,
+            None => {
+                self.props = props;
+                true
+            }
+        }
     }
 
     fn view(&self) -> Html {
@@ -91,11 +105,13 @@ impl Component for Note {
             <form class="w-full h-full p-2" ref=self.form_ref.clone()>
                 <label for="note_text" class="sr-only">{"Note text"}</label>
                 <textarea
-                id="note_text"
-                class=classes
-                ref=self.textarea_ref.clone()
-                oninput=input_callback
-                >{self.text.clone()}</textarea>
+                    id="note_text"
+                    class=classes
+                    ref=self.textarea_ref.clone()
+                    oninput=input_callback
+                >
+                    {self.props.text.clone()}
+                </textarea>
             </form>
         }
     }

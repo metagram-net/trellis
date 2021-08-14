@@ -1,4 +1,5 @@
 use serde_json;
+use trellis_core::config;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
@@ -12,7 +13,7 @@ mod weather;
 
 pub struct App {
     link: ComponentLink<Self>,
-    settings: trellis_core::Settings,
+    settings: config::Config,
     state: State,
     textarea_ref: NodeRef,
     settings_service: Box<dyn Bridge<settings::Settings>>,
@@ -20,7 +21,7 @@ pub struct App {
 
 pub enum Msg {
     FetchSettings,
-    ReceiveSettings(trellis_core::Settings),
+    ReceiveSettings(config::Config),
     EditSettings,
     SaveSettings,
 }
@@ -41,7 +42,7 @@ impl Component for App {
 
         Self {
             link: link.clone(),
-            settings: trellis_core::Settings::default(),
+            settings: config::Config::default(),
             textarea_ref: NodeRef::default(),
             state: State::Viewing,
             settings_service: settings::Settings::bridge(link.callback(Msg::ReceiveSettings)),
@@ -72,7 +73,7 @@ impl Component for App {
                     .cast::<HtmlTextAreaElement>()
                     .unwrap()
                     .value();
-                if let Ok(settings) = serde_json::from_str::<trellis_core::Settings>(&text) {
+                if let Ok(settings) = serde_json::from_str::<config::Config>(&text) {
                     self.settings_service
                         .send(settings::Request::Save(settings.clone()));
                     self.settings = settings;

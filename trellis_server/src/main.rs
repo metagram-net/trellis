@@ -12,7 +12,7 @@ use rocket::serde::json::Json;
 use rocket_sync_db_pools::database;
 use serde_json::map::Map;
 use serde_json::Value::{self, Object};
-use trellis_core;
+use trellis_core::config;
 
 mod auth;
 pub mod models;
@@ -21,7 +21,7 @@ pub mod schema;
 #[database("trellis")]
 struct DbConn(PgConnection);
 
-async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<trellis_core::Settings>> {
+async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<config::Config>> {
     use schema::settings::dsl::*;
     let res = db
         .run(move |c| {
@@ -33,10 +33,8 @@ async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<trellis
         .optional()?;
 
     match res {
-        Some(row) => Ok(Some(serde_json::from_value::<trellis_core::Settings>(
-            row.data,
-        )?)),
-        None => Ok(Some(trellis_core::Settings::default())),
+        Some(row) => Ok(Some(serde_json::from_value::<config::Config>(row.data)?)),
+        None => Ok(Some(config::Config::default())),
     }
 }
 
@@ -44,7 +42,7 @@ async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<trellis
 async fn load(
     db: DbConn,
     cookies: &CookieJar<'_>,
-) -> Result<Option<Json<trellis_core::Settings>>, status::Custom<&'static str>> {
+) -> Result<Option<Json<config::Config>>, status::Custom<&'static str>> {
     let user_id = match cookies.get_private("session") {
         None => return Err(status::Custom(Status::Unauthorized, "Unauthorized")),
         Some(cookie) => String::from(cookie.value()),

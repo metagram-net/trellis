@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use url::Url;
+use uuid;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
@@ -27,6 +28,7 @@ pub struct Weather {
 
 #[derive(Serialize, Deserialize, Properties, Clone, Debug)]
 pub struct Props {
+    pub id: uuid::Uuid,
     pub location_id: String,
     pub owm_api_key: String,
 }

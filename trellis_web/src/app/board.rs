@@ -1,15 +1,16 @@
 use super::{clock, note, weather};
-use trellis_core;
+use trellis_core::config;
 use yew::prelude::*;
 
 pub struct Board {
     props: Props,
+    #[allow(dead_code)]
     link: ComponentLink<Self>,
 }
 
 #[derive(Properties, Clone, Debug)]
 pub struct Props {
-    pub settings: trellis_core::Settings,
+    pub settings: config::Config,
 }
 
 impl Component for Board {
@@ -41,18 +42,21 @@ impl Component for Board {
     }
 }
 
-fn render_tile(tile: &trellis_core::Tile, secrets: trellis_core::Secrets) -> Html {
+fn render_tile(tile: &config::Tile, secrets: config::Secrets) -> Html {
     // TODO: Wrap all of these in tile/grid-cell boilerplate
     match &tile.data {
-        trellis_core::Data::Clock => html! { <clock::Clock /> },
-        trellis_core::Data::Weather { location_id } => {
+        config::Data::Clock => html! { <clock::Clock id=tile.id /> },
+        config::Data::Weather { location_id } => {
             html! {
                 <weather::Weather
+                    id=tile.id
                     location_id=location_id.clone()
                     owm_api_key=secrets.owm_api_key.unwrap_or("".to_owned())
                 />
             }
         }
-        trellis_core::Data::Note { text } => html! { <note::Note text=text.clone() /> },
+        config::Data::Note { text } => html! {
+            <note::Note id=tile.id text=text.clone() />
+        },
     }
 }

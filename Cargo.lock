@@ -1837,6 +1837,7 @@ dependencies = [
  "serde_json",
  "trellis_core",
  "url",
+ "uuid",
  "wasm-bindgen",
  "web-sys",
  "yew",
