@@ -18,11 +18,16 @@ pub struct App {
 }
 
 pub enum Msg {
+    // TODO: allow manual fetches
+    #[allow(dead_code)]
     FetchSettings,
     ReceiveSettings(config::Config),
     EditSettings,
     SaveSettings,
-    SaveSingle { id: Uuid, data: config::Data },
+    SaveSingle {
+        id: Uuid,
+        data: config::Data,
+    },
 }
 
 enum State {
@@ -36,15 +41,15 @@ impl Component for App {
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        // TODO: Loading spinner while waiting for settings to sync.
-        link.send_message(Msg::FetchSettings);
+        let mut settings_service = settings::Settings::bridge(link.callback(Msg::ReceiveSettings));
+        settings_service.send(settings::Request::Load);
 
         Self {
             link: link.clone(),
             settings: config::Config::default(),
             textarea_ref: NodeRef::default(),
-            state: State::Viewing,
-            settings_service: settings::Settings::bridge(link.callback(Msg::ReceiveSettings)),
+            state: State::Loading,
+            settings_service,
         }
     }
 
@@ -56,7 +61,6 @@ impl Component for App {
                 true
             }
             Msg::ReceiveSettings(settings) => {
-                // TODO: Merge settings
                 self.settings = settings;
                 self.state = State::Viewing;
                 true
