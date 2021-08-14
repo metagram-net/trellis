@@ -1,5 +1,5 @@
 module.exports = {
-  purge: ["./index.js", "./src/**/*.rs"],
+  purge: ["./index.js", "./trellis_web/src/**/*.rs"],
   darkMode: "media",
   theme: {
     extend: {},
