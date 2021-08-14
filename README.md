@@ -1,6 +1,6 @@
 # Trellis
 
-> Grow your own homepage!
+Grow your own homepage!
 
 ## What is this?
 
