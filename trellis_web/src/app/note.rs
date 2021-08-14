@@ -2,8 +2,6 @@ use std::time::Duration;
 use uuid;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
-use yew::services::console::ConsoleService;
-use yew::services::storage::{Area, StorageService};
 use yew::services::timeout::{TimeoutService, TimeoutTask};
 
 pub struct Note {
@@ -26,15 +24,6 @@ pub enum Msg {
     Saved,
 }
 
-impl Note {
-    // TODO: Store to the settings blob instead of letting them clobber a shared key!
-    const KEY: &'static str = "trellis.note";
-
-    fn save(&mut self, text: String) -> Result<(), &str> {
-        StorageService::new(Area::Local).map(|mut storage| storage.store(Self::KEY, Ok(text)))
-    }
-}
-
 impl Component for Note {
     type Message = Msg;
     type Properties = Props;
@@ -52,6 +41,7 @@ impl Component for Note {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Edited => {
+                // TODO: Prevent navigation while waiting for save
                 self.debounce = Some(TimeoutService::spawn(
                     Duration::from_millis(1000),
                     self.link.callback(|_| Msg::Saved),
@@ -65,9 +55,6 @@ impl Component for Note {
                     .cast::<HtmlTextAreaElement>()
                     .unwrap()
                     .value();
-                if let Err(err) = self.save(text.clone()) {
-                    ConsoleService::error(err);
-                }
                 self.props.onchange.emit(text);
                 true
             }
@@ -77,7 +64,7 @@ impl Component for Note {
     fn change(&mut self, props: Self::Properties) -> ShouldRender {
         // If a save is waiting, let it win.
         //
-        // TODO: Maybe do a three-way merge?
+        // TODO: Maybe merge the text somehow?
         match self.debounce {
             Some(_) => false,
             None => {

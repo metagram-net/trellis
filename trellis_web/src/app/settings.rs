@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use trellis_core::config;
 use uuid;
-use yew::format::Json;
+use yew::format::{Json, Nothing};
+use yew::services::console::ConsoleService;
 use yew::services::fetch;
 use yew::services::storage::{Area, StorageService};
 use yew::worker::*;
@@ -21,14 +22,17 @@ pub struct Settings {
     local: StorageService,
     settings: config::Config,
     save_req: Option<fetch::FetchTask>,
-    // TODO: loadReq: fetch::FetchTask,
+    load_req: Option<fetch::FetchTask>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Msg {
     Saved,
-    // Loaded(config::Config),
+    Loaded(config::Config),
+    Noop,
 }
+
+// TODO: Skip all the remote save/load stuff unless logged in
 
 impl Settings {
     const KEY: &'static str = "trellis.settings";
@@ -54,7 +58,8 @@ impl Settings {
                 if res.status().is_success() {
                     Msg::Saved
                 } else {
-                    // TODO: Try again with exponential backoff?
+                    // TODO: Try again later?
+                    ConsoleService::error("could not save settings");
                     Msg::Saved
                 }
             });
@@ -64,12 +69,36 @@ impl Settings {
     }
 
     fn load(&mut self) -> config::Config {
+        // Load local settings early to make things interactive faster.
         self.settings = self
             .local
             .restore::<Json<anyhow::Result<config::Config>>>(Self::KEY)
             .0
             .unwrap_or_default();
-        // TODO: Start a task to load from server
+
+        // Load remote settings in the background and accept the flash of stale layout.  Ideally,
+        // syncs happen frequently enough that LocalStorage doesn't get _too_ desynced.
+
+        let req = fetch::Request::get("/api/v1/load")
+            .body(Nothing)
+            .expect("could not build request");
+
+        let cb = self.link.callback(
+            |res: fetch::Response<Json<anyhow::Result<config::Config>>>| {
+                let Json(data) = res.into_body();
+                match data {
+                    Ok(settings) => Msg::Loaded(settings),
+                    Err(err) => {
+                        // TODO: Try again later?
+                        ConsoleService::error(&format!("could not load settings: {}", err));
+                        Msg::Noop
+                    }
+                }
+            },
+        );
+        let task = fetch::FetchService::fetch(req, cb).expect("could not start request");
+        self.load_req = Some(task);
+
         self.settings.clone()
     }
 }
@@ -87,12 +116,18 @@ impl Agent for Settings {
             subscribers: HashSet::new(),
             local: StorageService::new(Area::Local).expect("Could not connect to LocalStorage"),
             save_req: None,
+            load_req: None,
         }
     }
 
     fn update(&mut self, msg: Self::Message) {
         match msg {
+            Msg::Noop => (),
             Msg::Saved => self.save_req = None,
+            Msg::Loaded(settings) => {
+                self.settings = settings;
+                self.load_req = None;
+            }
         }
     }
 

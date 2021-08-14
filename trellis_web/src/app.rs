@@ -19,16 +19,11 @@ pub struct App {
 }
 
 pub enum Msg {
-    // TODO: allow manual fetches
-    #[allow(dead_code)]
     FetchSettings,
     ReceiveSettings(config::Config),
     EditSettings,
     SaveSettings,
-    SaveSingle {
-        id: Uuid,
-        data: config::Data,
-    },
+    SaveSingle { id: Uuid, data: config::Data },
 }
 
 enum State {
@@ -152,7 +147,8 @@ impl App {
     }
 
     fn view_board(&self) -> Html {
-        let onclick = self.link.callback(|_| Msg::EditSettings);
+        let edit_settings = self.link.callback(|_| Msg::EditSettings);
+        let reload_settings = self.link.callback(|_| Msg::FetchSettings);
 
         let tiles = self.settings.tiles.clone();
         let secrets = self.settings.secrets.clone();
@@ -161,15 +157,17 @@ impl App {
             <>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
+                    <div class="flex flex-col items-center justify-around w-full h-full">
+                        <button type="button" onclick=edit_settings class="btn btn-gray">{ "Edit Settings" }</button>
+                        <button type="button" onclick=reload_settings class="btn btn-gray">{ "Reload Settings" }</button>
+                    </div>
                 </div>
-                <button type="button" onclick=onclick class="btn btn-gray">{ "Settings" }</button>
             </>
         }
     }
 
     fn render_tile(&self, tile: config::Tile, secrets: config::Secrets) -> Html {
         let id = tile.id.clone();
-        // TODO: Wrap all of these in tile/grid-cell boilerplate
         match &tile.data {
             config::Data::Clock => html! { <clock::Clock id=id /> },
             config::Data::Weather { location_id } => {
