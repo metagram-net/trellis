@@ -113,7 +113,7 @@ impl Component for Weather {
                         // The weather comes back as an array.  This is probably one item per
                         // weather station, so taking the first one should be fine for now.
                         //
-                        // TODO: Figure out why this is a list.
+                        // TODO: Figure out how to handle this list better.
                         let w = &data.weather[0];
                         let mut icon_url = OWM_URL.clone();
                         icon_url.set_path(&format!("img/w/{}.png", w.icon));

@@ -7,12 +7,44 @@ pub struct Config {
     pub tiles: Vec<Tile>,
 }
 
+const STARTER_TEXT: &'static str = r#"Welcome to Trellis!
+This is _very_ much a work-in-progress, and there are _definitely_ major bugs.
+If you think this is cool, have an idea to share, or want to watch development, it's all on GitHub! There should be a link on this page somewhere."#;
+
 impl Default for Config {
     fn default() -> Self {
         Self {
             secrets: Secrets { owm_api_key: None },
-            // TODO: Put instructions in a text tile
-            tiles: vec![],
+            tiles: vec![
+                Tile {
+                    id: Uuid::new_v4(),
+                    row: None,
+                    col: None,
+                    width: None,
+                    height: None,
+                    data: Data::Clock,
+                },
+                Tile {
+                    id: Uuid::new_v4(),
+                    row: None,
+                    col: None,
+                    width: None,
+                    height: None,
+                    data: Data::Weather {
+                        location_id: "".to_owned(),
+                    },
+                },
+                Tile {
+                    id: Uuid::new_v4(),
+                    row: None,
+                    col: None,
+                    width: None,
+                    height: None,
+                    data: Data::Note {
+                        text: STARTER_TEXT.to_owned(),
+                    },
+                },
+            ],
         }
     }
 }

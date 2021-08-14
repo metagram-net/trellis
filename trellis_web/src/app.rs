@@ -100,10 +100,19 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        match self.state {
+        let main = match self.state {
             State::Loading => self.view_loading(),
             State::Editing => self.view_settings(),
             State::Viewing => self.view_board(),
+        };
+        html! {
+            <div class="min-h-screen flex flex-col justify-between">
+                <main class="m-1">{main}</main>
+                <footer class="flex justify-center space-x-8 text-gray-400 text-sm">
+                    <p>{crate::VERSION_INFO}</p>
+                    <p>{"Source code on "}<a href="https://github.com/metagram-net/trellis">{"GitHub"}</a></p>
+                </footer>
+            </div>
         }
     }
 }
@@ -155,11 +164,12 @@ impl App {
 
         html! {
             <>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 space-x-1 space-y-1">
                     { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
                     <div class="flex flex-col items-center justify-around w-full h-full">
                         <button type="button" onclick=edit_settings class="btn btn-gray">{ "Edit Settings" }</button>
                         <button type="button" onclick=reload_settings class="btn btn-gray">{ "Reload Settings" }</button>
+
                     </div>
                 </div>
             </>
