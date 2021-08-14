@@ -15,6 +15,7 @@ pub struct App {
     state: State,
     textarea_ref: NodeRef,
     settings_service: Box<dyn Bridge<settings::Settings>>,
+    error: Option<String>,
 }
 
 pub enum Msg {
@@ -50,6 +51,7 @@ impl Component for App {
             textarea_ref: NodeRef::default(),
             state: State::Loading,
             settings_service,
+            error: None,
         }
     }
 
@@ -76,14 +78,18 @@ impl Component for App {
                     .cast::<HtmlTextAreaElement>()
                     .unwrap()
                     .value();
-                if let Ok(settings) = serde_json::from_str::<config::Config>(&text) {
-                    self.settings_service
-                        .send(settings::Request::Save(settings.clone()));
-                    self.settings = settings;
-                    return true;
+                match serde_json::from_str::<config::Config>(&text) {
+                    Ok(settings) => {
+                        self.settings_service
+                            .send(settings::Request::Save(settings.clone()));
+                        self.settings = settings;
+                        self.state = State::Editing;
+                        self.error = None;
+                    }
+                    Err(err) => {
+                        self.error = Some(err.to_string());
+                    }
                 }
-                // TODO: Don't silently error on serialization issues!
-                self.state = State::Editing;
                 true
             }
             Msg::SaveSingle { id, data } => {
@@ -125,12 +131,22 @@ impl App {
             text.as_bytes().iter().filter(|&&c| c == b'\n').count() + 1
         );
 
+        let errors = match &self.error {
+            None => html! {},
+            Some(msg) => html! {
+                <div class="alert">
+                    <p>{msg}</p>
+                </div>
+            },
+        };
+
         html! {
             <form onsubmit=onsubmit>
                 <textarea class="w-full" rows=rows ref=self.textarea_ref.clone()>
                     {text}
                 </textarea>
                 <button type="submit" class="btn btn-gray">{ "Save" }</button>
+                {errors}
             </form>
         }
     }

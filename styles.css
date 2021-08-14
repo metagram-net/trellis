@@ -77,4 +77,12 @@
   [type="submit"] {
     @apply border-gray-400 bg-gray-400 dark:border-gray-700 dark:bg-gray-800;
   }
+
+  .notice {
+    @apply p-1 border border-gray-500 bg-gray-200 dark:border-gray-800 dark:bg-gray-900;
+  }
+
+  .alert {
+    @apply p-1 border border-red-500 bg-red-200 dark:border-red-800 dark:bg-red-900;
+  }
 }
