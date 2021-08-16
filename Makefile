@@ -15,7 +15,7 @@ clean: ## Remove output files
 
 .PHONY: release
 release: clean ## Build app in release mode
-	npm install
+	npm ci
 	npm run build
 
 .PHONY: watch
