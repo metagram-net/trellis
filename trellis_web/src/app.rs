@@ -22,7 +22,6 @@ pub struct Props {
 }
 
 pub enum Msg {
-    FetchSettings,
     ReceiveSettings(config::Config),
     SaveSettings(config::Config),
     EditSettings,
@@ -54,11 +53,6 @@ impl Component for App {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::FetchSettings => {
-                self.settings_service.send(settings::Request::Load);
-                self.state = State::Loading;
-                true
-            }
             Msg::ReceiveSettings(settings) => {
                 self.settings = settings;
                 self.state = State::Viewing;
@@ -114,7 +108,6 @@ impl Component for App {
 impl App {
     fn view_board(&self) -> Html {
         let edit_settings = self.link.callback(|_| Msg::EditSettings);
-        let reload_settings = self.link.callback(|_| Msg::FetchSettings);
 
         let tiles = self.settings.tiles.clone();
         let secrets = self.settings.secrets.clone();
@@ -125,8 +118,6 @@ impl App {
                     { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
                     <div class="flex flex-col items-center justify-around w-full h-full">
                         <button type="button" onclick=edit_settings class="btn btn-gray">{ "Edit Settings" }</button>
-                        <button type="button" onclick=reload_settings class="btn btn-gray">{ "Reload Settings" }</button>
-
                     </div>
                 </div>
             </>
