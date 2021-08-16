@@ -1,6 +1,10 @@
+.env
+.envrc
+.ignore
 dist
 node_modules
 pkg
 target
+tmp
 */pkg
 */target
