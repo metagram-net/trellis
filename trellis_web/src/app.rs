@@ -10,10 +10,15 @@ mod weather;
 
 pub struct App {
     link: ComponentLink<Self>,
+    props: Props,
     settings: config::Config,
     state: State,
-    textarea_ref: NodeRef,
     settings_service: Box<dyn Bridge<settings::Settings>>,
+}
+
+#[derive(Properties, Clone, Debug)]
+pub struct Props {
+    pub version_info: &'static str,
 }
 
 pub enum Msg {
@@ -32,14 +37,15 @@ enum State {
 
 impl Component for App {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         let mut settings_service = settings::Settings::bridge(link.callback(Msg::ReceiveSettings));
         settings_service.send(settings::Request::Load);
 
         Self {
-            link: link.clone(),
+            link,
+            props,
             settings: config::Config::default(),
             state: State::Loading,
             settings_service,
@@ -75,13 +81,14 @@ impl Component for App {
         }
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
+        true
     }
 
     fn view(&self) -> Html {
         let main = match self.state {
-            State::Loading => self.view_loading(),
+            State::Loading => html! { <p class="text-xl">{"Loading..."}</p> },
             State::Editing => {
                 html! {
                     <config_form::ConfigForm
@@ -96,7 +103,7 @@ impl Component for App {
             <div class="min-h-screen flex flex-col justify-between">
                 <main class="m-1">{main}</main>
                 <footer class="flex justify-center space-x-8 text-gray-400 text-sm">
-                    <p>{crate::VERSION_INFO}</p>
+                    <p>{self.props.version_info}</p>
                     <p>{"Source code on "}<a href="https://github.com/metagram-net/trellis">{"GitHub"}</a></p>
                 </footer>
             </div>
@@ -105,10 +112,6 @@ impl Component for App {
 }
 
 impl App {
-    fn view_loading(&self) -> Html {
-        html! { <p class="text-xl">{"Loading..."}</p> }
-    }
-
     fn view_board(&self) -> Html {
         let edit_settings = self.link.callback(|_| Msg::EditSettings);
         let reload_settings = self.link.callback(|_| Msg::FetchSettings);
