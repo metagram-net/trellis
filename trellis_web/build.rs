@@ -43,8 +43,8 @@ fn status_suffix(cwd: &str) -> &'static str {
         .expect("Failed to execute command");
 
     if status.success() {
-        "+"
-    } else {
         ""
+    } else {
+        "+"
     }
 }
