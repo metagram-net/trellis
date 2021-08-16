@@ -1,5 +1,4 @@
 use std::time::Duration;
-use uuid;
 use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 use yew::services::timeout::{TimeoutService, TimeoutTask};
@@ -14,7 +13,6 @@ pub struct Note {
 
 #[derive(Properties, Clone, Debug)]
 pub struct Props {
-    pub id: uuid::Uuid,
     pub text: String,
     pub onchange: Callback<String>,
 }

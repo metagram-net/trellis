@@ -136,11 +136,10 @@ impl App {
     fn render_tile(&self, tile: config::Tile, secrets: config::Secrets) -> Html {
         let id = tile.id.clone();
         match &tile.data {
-            config::Data::Clock => html! { <clock::Clock id=id /> },
+            config::Data::Clock => html! { <clock::Clock/> },
             config::Data::Weather { location_id } => {
                 html! {
                     <weather::Weather
-                        id=id
                         location_id=location_id.clone()
                         owm_api_key=secrets.owm_api_key.clone().unwrap_or("".to_owned())
                     />
@@ -148,7 +147,6 @@ impl App {
             }
             config::Data::Note { text } => html! {
                 <note::Note
-                    id=id
                     text=text.clone()
                     onchange=self.link.callback(move |text| {
                         Msg::SaveSingle{id, data: config::Data::Note{ text }}
