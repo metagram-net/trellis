@@ -1,10 +1,9 @@
-use serde_json;
 use trellis_core::config;
 use uuid::Uuid;
-use web_sys::HtmlTextAreaElement;
 use yew::prelude::*;
 
 mod clock;
+mod config_form;
 mod note;
 mod settings;
 mod weather;
@@ -15,14 +14,13 @@ pub struct App {
     state: State,
     textarea_ref: NodeRef,
     settings_service: Box<dyn Bridge<settings::Settings>>,
-    error: Option<String>,
 }
 
 pub enum Msg {
     FetchSettings,
     ReceiveSettings(config::Config),
+    SaveSettings(config::Config),
     EditSettings,
-    SaveSettings,
     SaveSingle { id: Uuid, data: config::Data },
 }
 
@@ -43,10 +41,8 @@ impl Component for App {
         Self {
             link: link.clone(),
             settings: config::Config::default(),
-            textarea_ref: NodeRef::default(),
             state: State::Loading,
             settings_service,
-            error: None,
         }
     }
 
@@ -62,29 +58,13 @@ impl Component for App {
                 self.state = State::Viewing;
                 true
             }
-            Msg::EditSettings => {
-                self.textarea_ref = NodeRef::default();
-                self.state = State::Editing;
-                true
+            Msg::SaveSettings(cfg) => {
+                self.settings_service.send(settings::Request::Save(cfg));
+                // Wait for the save to complete before re-rendering
+                false
             }
-            Msg::SaveSettings => {
-                let text = self
-                    .textarea_ref
-                    .cast::<HtmlTextAreaElement>()
-                    .unwrap()
-                    .value();
-                match serde_json::from_str::<config::Config>(&text) {
-                    Ok(settings) => {
-                        self.settings_service
-                            .send(settings::Request::Save(settings.clone()));
-                        self.settings = settings;
-                        self.state = State::Editing;
-                        self.error = None;
-                    }
-                    Err(err) => {
-                        self.error = Some(err.to_string());
-                    }
-                }
+            Msg::EditSettings => {
+                self.state = State::Editing;
                 true
             }
             Msg::SaveSingle { id, data } => {
@@ -102,7 +82,14 @@ impl Component for App {
     fn view(&self) -> Html {
         let main = match self.state {
             State::Loading => self.view_loading(),
-            State::Editing => self.view_settings(),
+            State::Editing => {
+                html! {
+                    <config_form::ConfigForm
+                        config=self.settings.clone()
+                        onsave=self.link.callback(Msg::SaveSettings)
+                    />
+                }
+            }
             State::Viewing => self.view_board(),
         };
         html! {
@@ -120,39 +107,6 @@ impl Component for App {
 impl App {
     fn view_loading(&self) -> Html {
         html! { <p class="text-xl">{"Loading..."}</p> }
-    }
-
-    fn view_settings(&self) -> Html {
-        let onsubmit = self.link.callback(|e: FocusEvent| {
-            e.prevent_default();
-            Msg::SaveSettings
-        });
-        let text =
-            serde_json::to_string_pretty(&self.settings).expect("Could not serialize settings");
-        let rows = format!(
-            "{}",
-            // Add an extra row because the last line doesn't have a newline.
-            text.as_bytes().iter().filter(|&&c| c == b'\n').count() + 1
-        );
-
-        let errors = match &self.error {
-            None => html! {},
-            Some(msg) => html! {
-                <div class="alert">
-                    <p>{msg}</p>
-                </div>
-            },
-        };
-
-        html! {
-            <form onsubmit=onsubmit>
-                <textarea class="w-full" rows=rows ref=self.textarea_ref.clone()>
-                    {text}
-                </textarea>
-                <button type="submit" class="btn btn-gray">{ "Save" }</button>
-                {errors}
-            </form>
-        }
     }
 
     fn view_board(&self) -> Html {
