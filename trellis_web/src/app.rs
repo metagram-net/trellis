@@ -5,6 +5,7 @@ use yew::prelude::*;
 mod clock;
 mod config_form;
 mod note;
+mod secrets_form;
 mod settings;
 mod weather;
 

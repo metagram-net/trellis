@@ -1,7 +1,7 @@
+use super::secrets_form::SecretsForm;
 use super::weather;
 use trellis_core::config;
 use uuid::Uuid;
-use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 #[derive(Properties, Clone, Debug)]
@@ -94,8 +94,8 @@ impl Component for ConfigForm {
             <>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 space-x-1 space-y-1">
                     { tiles.iter().map(|t| self.render_tile(t.clone())).collect::<Html>() }
-                    <SecretsForm secrets=self.staged.secrets.clone() onchange=onchange />
                 </div>
+                <SecretsForm secrets=self.staged.secrets.clone() onchange=onchange />
                 {errors}
                 <form class="w-full text-center mt-4" onsubmit=onsubmit>
                     <button type="submit" class="btn btn-gray">{ "Done" }</button>
@@ -126,94 +126,6 @@ impl ConfigForm {
                 });
                 html! { <weather::ConfigForm location_id=location_id.clone() onchange=onchange /> }
             }
-        }
-    }
-}
-
-struct SecretsForm {
-    link: ComponentLink<Self>,
-    props: SecretsFormProps,
-    owm_api_key_ref: NodeRef,
-}
-
-#[derive(Properties, Clone, Debug)]
-pub struct SecretsFormProps {
-    pub secrets: config::Secrets,
-    pub onchange: Callback<config::Secrets>,
-}
-
-enum SecretsFormMsg {
-    Input,
-    Submit,
-}
-
-impl Component for SecretsForm {
-    type Message = SecretsFormMsg;
-    type Properties = SecretsFormProps;
-
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self {
-            link,
-            props,
-            owm_api_key_ref: NodeRef::default(),
-        }
-    }
-
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
-        match msg {
-            Self::Message::Submit => {
-                self.props.onchange.emit(self.props.secrets.clone());
-                false
-            }
-            Self::Message::Input => {
-                let owm_api_key = self
-                    .owm_api_key_ref
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value()
-                    .trim()
-                    .to_owned();
-                let mut secrets = self.props.secrets.clone();
-                secrets.owm_api_key = if owm_api_key.is_empty() {
-                    None
-                } else {
-                    Some(owm_api_key)
-                };
-                self.props.onchange.emit(secrets);
-                false
-            }
-        }
-    }
-
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
-    }
-
-    fn view(&self) -> Html {
-        let onsubmit = self.link.callback(|e: FocusEvent| {
-            e.prevent_default();
-            SecretsFormMsg::Submit
-        });
-
-        let oninput = self.link.callback(|_: InputData| Self::Message::Input);
-
-        html! {
-            <form
-                class="flex flex-col items-center justify-around w-full h-full"
-                onsubmit=onsubmit
-            >
-                <label>
-                    <a href="https://home.openweathermap.org/api_keys">{"OpenWeatherMap API Key"}</a>
-                    <input
-                        type="text"
-                        class="w-full"
-                        value=self.props.secrets.owm_api_key.clone()
-                        ref=self.owm_api_key_ref.clone()
-                        oninput=oninput
-                    />
-                </label>
-            </form>
         }
     }
 }
