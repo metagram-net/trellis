@@ -281,7 +281,7 @@ impl Component for ConfigForm {
         let oninput = self.link.callback(|_: InputData| ConfigFormMsg::Input);
 
         html! {
-            <form class="flex flex-col items-center justify-around w-full h-full" onsubmit=onsubmit>
+            <form class="w-full h-full" onsubmit=onsubmit>
                 <label>
                     <a href="https://openweathermap.org/find">{"Location ID"}</a>
                     <input

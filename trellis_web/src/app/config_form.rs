@@ -20,6 +20,7 @@ pub struct ConfigForm {
 
 pub enum Msg {
     AddTile(config::Data),
+    DeleteTile(Uuid),
     ChangeSingle { id: Uuid, data: config::Data },
     ChangeSecrets(config::Secrets),
     Save,
@@ -50,6 +51,17 @@ impl Component for ConfigForm {
                     data,
                 };
                 self.staged.tiles.push(tile);
+                true
+            }
+            Msg::DeleteTile(id) => {
+                // TODO: Make this a method on Config
+                let mut new_tiles: Vec<config::Tile> = Vec::new();
+                for tile in self.staged.tiles.iter() {
+                    if tile.id != id {
+                        new_tiles.push(tile.clone());
+                    }
+                }
+                self.staged.tiles = new_tiles;
                 true
             }
             Msg::ChangeSingle { id, data } => {
@@ -124,15 +136,18 @@ impl Component for ConfigForm {
 impl ConfigForm {
     fn render_tile(&self, tile: config::Tile) -> Html {
         let id = tile.id.clone();
+        let delete_tile = self.link.callback(move |_| Msg::DeleteTile(id));
         match &tile.data {
             config::Data::Clock => html! {
                 <div class="flex flex-col items-center justify-around w-full h-full">
                     <p>{"Clock (not configurable)"}</p>
+                    <button onclick=delete_tile>{"Delete Tile"}</button>
                 </div>
             },
             config::Data::Note { text: _ } => html! {
                 <div class="flex flex-col items-center justify-around w-full h-full">
                     <p>{"Note (not configurable)"}</p>
+                    <button onclick=delete_tile>{"Delete Tile"}</button>
                 </div>
             },
             config::Data::Weather { location_id } => {
@@ -140,7 +155,12 @@ impl ConfigForm {
                     id,
                     data: config::Data::Weather { location_id: lid },
                 });
-                html! { <weather::ConfigForm location_id=location_id.clone() onchange=onchange /> }
+                html! {
+                    <div class="flex flex-col items-center justify-around w-full h-full">
+                        <weather::ConfigForm location_id=location_id.clone() onchange=onchange />
+                        <button onclick=delete_tile>{"Delete Tile"}</button>
+                    </div>
+                }
             }
         }
     }
