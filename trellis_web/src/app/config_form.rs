@@ -114,7 +114,7 @@ impl Component for ConfigForm {
                 <SecretsForm secrets=self.staged.secrets.clone() onchange=onchange />
                 {errors}
                 <form class="w-full text-center mt-4" onsubmit=onsubmit>
-                    <button type="submit" class="btn btn-gray">{ "Done" }</button>
+                    <button type="submit">{ "Done" }</button>
                 </form>
             </>
         }

@@ -79,7 +79,7 @@ impl Component for AddTileForm {
                         <option value="note">{"Note"}</option>
                     </select>
                 </label>
-                <button type="submit" class="btn btn-gray">{ "Add Tile" }</button>
+                <button type="submit">{ "Add Tile" }</button>
             </form>
         }
     }

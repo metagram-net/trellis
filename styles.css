@@ -41,18 +41,6 @@
 }
 
 @layer components {
-  .btn {
-    @apply px-1 border border-solid;
-  }
-
-  .btn-gray {
-    @apply text-black border-gray-400 bg-gray-50 dark:text-white dark:border-gray-700 dark:bg-gray-800;
-
-    &:hover {
-      @apply bg-gray-400 dark:bg-gray-700;
-    }
-  }
-
   [type="text"],
   [type="email"],
   [type="url"],
@@ -75,7 +63,11 @@
   [type="button"],
   [type="reset"],
   [type="submit"] {
-    @apply border-gray-400 bg-gray-400 dark:border-gray-700 dark:bg-gray-800;
+    @apply px-1 border border-solid text-black border-gray-400 bg-gray-50 dark:text-white dark:border-gray-700 dark:bg-gray-800;
+
+    &:hover {
+      @apply bg-gray-400 dark:bg-gray-700;
+    }
   }
 
   .notice {

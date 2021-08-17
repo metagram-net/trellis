@@ -119,7 +119,7 @@ impl App {
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 space-x-1 space-y-1">
                     { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
                     <div class="flex flex-col items-center justify-around w-full h-full">
-                        <button type="button" onclick=edit_settings class="btn btn-gray">{ "Edit Settings" }</button>
+                        <button type="button" onclick=edit_settings>{ "Edit Settings" }</button>
                     </div>
                 </div>
             </>
