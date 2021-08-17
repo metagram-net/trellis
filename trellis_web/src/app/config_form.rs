@@ -1,3 +1,4 @@
+use super::add_tile_form::AddTileForm;
 use super::secrets_form::SecretsForm;
 use super::weather;
 use trellis_core::config;
@@ -18,6 +19,7 @@ pub struct ConfigForm {
 }
 
 pub enum Msg {
+    AddTile(config::Data),
     ChangeSingle { id: Uuid, data: config::Data },
     ChangeSecrets(config::Secrets),
     Save,
@@ -38,6 +40,18 @@ impl Component for ConfigForm {
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
+            Msg::AddTile(data) => {
+                let tile = config::Tile {
+                    id: Uuid::new_v4(),
+                    row: None,
+                    col: None,
+                    width: None,
+                    height: None,
+                    data,
+                };
+                self.staged.tiles.push(tile);
+                true
+            }
             Msg::ChangeSingle { id, data } => {
                 // TODO: Make this a method on Config
                 let mut new_tiles: Vec<config::Tile> = Vec::new();
@@ -89,11 +103,13 @@ impl Component for ConfigForm {
             e.prevent_default();
             Self::Message::Save
         });
+        let add_tile = self.link.callback(Self::Message::AddTile);
 
         html! {
             <>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 space-x-1 space-y-1">
                     { tiles.iter().map(|t| self.render_tile(t.clone())).collect::<Html>() }
+                    <AddTileForm onsubmit=add_tile />
                 </div>
                 <SecretsForm secrets=self.staged.secrets.clone() onchange=onchange />
                 {errors}

@@ -2,6 +2,7 @@ use trellis_core::config;
 use uuid::Uuid;
 use yew::prelude::*;
 
+mod add_tile_form;
 mod clock;
 mod config_form;
 mod note;
