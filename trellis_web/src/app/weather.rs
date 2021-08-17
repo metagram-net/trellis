@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use url::Url;
+use web_sys::HtmlInputElement;
 use yew::format::{Json, Nothing};
 use yew::prelude::*;
 use yew::services::fetch::{FetchService, FetchTask, Request, Response};
@@ -79,8 +80,12 @@ impl Component for Weather {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::Fetch => {
-                if &self.props.owm_api_key == "" {
+                if self.props.owm_api_key.is_empty() {
                     self.error = Some(format_err!("Missing OpenWeatherMap API key"));
+                    return true;
+                }
+                if self.props.location_id.is_empty() {
+                    self.error = Some(format_err!("Missing location ID"));
                     return true;
                 }
 
@@ -217,4 +222,77 @@ struct WeatherResponse {
 #[derive(Deserialize, Clone)]
 struct MainResponse {
     temp: f64,
+}
+
+pub struct ConfigForm {
+    props: ConfigFormProps,
+    link: ComponentLink<Self>,
+    lid_ref: NodeRef,
+}
+
+#[derive(Properties, Clone, Debug)]
+pub struct ConfigFormProps {
+    pub location_id: String,
+    pub onchange: Callback<String>,
+}
+
+pub enum ConfigFormMsg {
+    Submit,
+    Input,
+}
+
+impl Component for ConfigForm {
+    type Message = ConfigFormMsg;
+    type Properties = ConfigFormProps;
+
+    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        Self {
+            props,
+            link,
+            lid_ref: NodeRef::default(),
+        }
+    }
+
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            ConfigFormMsg::Submit => {
+                let lid = self.lid_ref.cast::<HtmlInputElement>().unwrap().value();
+                self.props.onchange.emit(lid);
+                true
+            }
+            ConfigFormMsg::Input => {
+                let lid = self.lid_ref.cast::<HtmlInputElement>().unwrap().value();
+                self.props.onchange.emit(lid);
+                true
+            }
+        }
+    }
+
+    fn change(&mut self, props: Self::Properties) -> ShouldRender {
+        self.props = props;
+        true
+    }
+
+    fn view(&self) -> Html {
+        let onsubmit = self.link.callback(|e: FocusEvent| {
+            e.prevent_default();
+            ConfigFormMsg::Submit
+        });
+        let oninput = self.link.callback(|_: InputData| ConfigFormMsg::Input);
+
+        html! {
+            <form class="flex flex-col items-center justify-around w-full h-full" onsubmit=onsubmit>
+                <label>
+                    <a href="https://openweathermap.org/find">{"Location ID"}</a>
+                    <input
+                    type="text"
+                    value=self.props.location_id.clone()
+                    ref=self.lid_ref.clone()
+                    oninput=oninput
+                />
+                </label>
+                <p>{"This tile also uses the OWM API key from the global settings."}</p>
+            </form>
+        }
+    }
 }

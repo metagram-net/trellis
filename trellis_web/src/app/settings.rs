@@ -14,6 +14,7 @@ pub enum Request {
     Save(config::Config),
     Load,
     SaveSingle { id: uuid::Uuid, data: config::Data },
+    SaveSecrets { secrets: config::Secrets },
 }
 
 pub struct Settings {
@@ -142,6 +143,7 @@ impl Agent for Settings {
                 self.broadcast(cfg);
             }
             Request::SaveSingle { id, data } => {
+                // TODO: Make this a method on Config
                 let mut new_tiles: Vec<config::Tile> = Vec::new();
                 for tile in self.settings.tiles.iter() {
                     if tile.id != id {
@@ -159,6 +161,11 @@ impl Agent for Settings {
                 }
                 self.settings.tiles = new_tiles;
                 self.link.send_input(Request::Save(self.settings.clone()));
+            }
+            Request::SaveSecrets { secrets } => {
+                let mut cfg = self.settings.clone();
+                cfg.secrets = secrets;
+                self.link.send_input(Request::Save(cfg));
             }
         }
     }

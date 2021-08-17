@@ -87,7 +87,7 @@ impl Component for App {
                 html! {
                     <config_form::ConfigForm
                         config=self.settings.clone()
-                        onsave=self.link.callback(Msg::SaveSettings)
+                        onsubmit=self.link.callback(Msg::SaveSettings)
                     />
                 }
             }
