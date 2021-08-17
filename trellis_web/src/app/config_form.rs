@@ -119,7 +119,7 @@ impl Component for ConfigForm {
 
         html! {
             <>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 space-x-1 space-y-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
                     { tiles.iter().map(|t| self.render_tile(t.clone())).collect::<Html>() }
                     <AddTileForm onsubmit=add_tile />
                 </div>
