@@ -119,9 +119,11 @@ impl Component for ConfigForm {
                     { tiles.iter().map(|t| self.render_tile(t.clone())).collect::<Html>() }
                     <AddTileForm onsubmit=add_tile />
                 </div>
+                <div class="w-4/5 mx-auto my-2 border-t border-gray-200 dark:border-gray-700"></div>
                 <SecretsForm secrets=self.staged.secrets.clone() onchange=onchange />
+                <div class="w-4/5 mx-auto my-2 border-t border-gray-200 dark:border-gray-700"></div>
                 {errors}
-                <form class="w-full text-center mt-4" onsubmit=onsubmit>
+                <form class="w-full text-center" onsubmit=onsubmit>
                     <button type="submit">{ "Done" }</button>
                 </form>
             </>
