@@ -70,16 +70,20 @@ impl Component for AddTileForm {
         let onsubmit = self.link.callback(Msg::Submit);
 
         html! {
-            <form class="flex flex-col items-center justify-around w-full h-full" onsubmit=onsubmit>
-                <label>{"Tile type"}
-                    <select onchange=onchange>
-                        <option value="" disabled=true>{""}</option>
-                        <option value="clock">{"Clock"}</option>
-                        <option value="weather">{"Weather"}</option>
-                        <option value="note">{"Note"}</option>
-                    </select>
-                </label>
-                <button type="submit">{ "Add Tile" }</button>
+            <form class="w-full h-full" onsubmit=onsubmit>
+                <div>
+                    <label>{"Tile type"}
+                        <select onchange=onchange>
+                            <option value="" disabled=true>{""}</option>
+                            <option value="clock">{"Clock"}</option>
+                            <option value="weather">{"Weather"}</option>
+                            <option value="note">{"Note"}</option>
+                        </select>
+                    </label>
+                </div>
+                <div>
+                    <button type="submit" class="w-auto">{ "Add Tile" }</button>
+                </div>
             </form>
         }
     }

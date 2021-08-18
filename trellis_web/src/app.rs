@@ -115,21 +115,19 @@ impl App {
         let secrets = self.settings.secrets.clone();
 
         html! {
-            <>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1">
-                    { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
-                    <div class="flex flex-col items-center justify-around w-full h-full">
-                        <button type="button" onclick=edit_settings>{ "Edit Settings" }</button>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 auto-rows-fr">
+                { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
+                <div class="flex flex-col items-center justify-around w-full h-full">
+                    <button type="button" onclick=edit_settings>{ "Edit Settings" }</button>
                 </div>
-            </>
+            </div>
         }
     }
 
     fn render_tile(&self, tile: config::Tile, secrets: config::Secrets) -> Html {
         let id = tile.id.clone();
-        match &tile.data {
-            config::Data::Clock => html! { <clock::Clock/> },
+        let inner = match &tile.data {
+            config::Data::Clock => html! { <clock::Clock /> },
             config::Data::Weather { location_id } => {
                 html! {
                     <weather::Weather
@@ -146,6 +144,16 @@ impl App {
                     })
                 />
             },
+        };
+
+        let height = tile.height.unwrap_or(1);
+        let width = tile.width.unwrap_or(1);
+        let style = format!(
+            "grid-row: auto / span {}; grid-column: auto / span {}",
+            height, width
+        );
+        html! {
+            <div style=style>{inner}</div>
         }
     }
 }
