@@ -44,8 +44,6 @@ impl Component for ConfigForm {
             Msg::AddTile(data) => {
                 let tile = config::Tile {
                     id: Uuid::new_v4(),
-                    row: None,
-                    col: None,
                     width: None,
                     height: None,
                     data,
@@ -71,8 +69,6 @@ impl Component for ConfigForm {
                     if tile.id == id {
                         new_tiles.push(config::Tile {
                             id: tile.id,
-                            row: tile.row,
-                            col: tile.col,
                             width: tile.width,
                             height: tile.height,
                             data: data.clone(),

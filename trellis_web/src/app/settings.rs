@@ -151,8 +151,6 @@ impl Agent for Settings {
                     } else {
                         new_tiles.push(config::Tile {
                             id: tile.id,
-                            row: tile.row,
-                            col: tile.col,
                             width: tile.width,
                             height: tile.height,
                             data: data.clone(),

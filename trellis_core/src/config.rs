@@ -18,16 +18,12 @@ impl Default for Config {
             tiles: vec![
                 Tile {
                     id: Uuid::new_v4(),
-                    row: None,
-                    col: None,
                     width: None,
                     height: None,
                     data: Data::Clock,
                 },
                 Tile {
                     id: Uuid::new_v4(),
-                    row: None,
-                    col: None,
                     width: None,
                     height: None,
                     data: Data::Weather {
@@ -36,8 +32,6 @@ impl Default for Config {
                 },
                 Tile {
                     id: Uuid::new_v4(),
-                    row: None,
-                    col: None,
                     width: None,
                     height: None,
                     data: Data::Note {
@@ -67,10 +61,6 @@ pub enum Data {
 pub struct Tile {
     pub id: Uuid,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub row: Option<u32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub col: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
