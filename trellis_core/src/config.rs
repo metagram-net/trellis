@@ -33,7 +33,7 @@ impl Default for Config {
                 Tile {
                     id: Uuid::new_v4(),
                     width: None,
-                    height: None,
+                    height: Some(2),
                     data: Data::Note {
                         text: STARTER_TEXT.to_owned(),
                     },
