@@ -3,6 +3,7 @@ use uuid::Uuid;
 use yew::prelude::*;
 
 mod add_tile_form;
+mod board;
 mod clock;
 mod config_form;
 mod footer;
@@ -96,7 +97,16 @@ impl Component for App {
                     />
                 }
             }
-            State::Viewing => self.view_board(),
+            State::Viewing => {
+                let onedit = self.link.callback(|_| Msg::EditSettings);
+                let onchange = self
+                    .link
+                    .callback(|(id, data)| Msg::SaveSingle { id, data });
+
+                html! {
+                    <board::Board config=self.settings.clone() onchange=onchange onedit=onedit />
+                }
+            }
         };
         html! {
             <div class="min-h-screen flex flex-col justify-between">
@@ -106,57 +116,6 @@ impl Component for App {
                     source_url=self.props.source_url
                 />
             </div>
-        }
-    }
-}
-
-impl App {
-    fn view_board(&self) -> Html {
-        let edit_settings = self.link.callback(|_| Msg::EditSettings);
-
-        let tiles = self.settings.tiles.clone();
-        let secrets = self.settings.secrets.clone();
-
-        html! {
-            <grid::Grid>
-                { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
-                <div class="flex flex-col items-center justify-around w-full h-full">
-                    <button type="button" onclick=edit_settings>{ "Edit Settings" }</button>
-                </div>
-            </grid::Grid>
-        }
-    }
-
-    fn render_tile(&self, tile: config::Tile, secrets: config::Secrets) -> Html {
-        let id = tile.id.clone();
-        let inner = match &tile.data {
-            config::Data::Clock => html! { <clock::Clock /> },
-            config::Data::Weather { location_id } => {
-                html! {
-                    <weather::Weather
-                        location_id=location_id.clone()
-                        owm_api_key=secrets.owm_api_key.clone().unwrap_or("".to_owned())
-                    />
-                }
-            }
-            config::Data::Note { text } => html! {
-                <note::Note
-                    text=text.clone()
-                    onchange=self.link.callback(move |text| {
-                        Msg::SaveSingle{id, data: config::Data::Note{ text }}
-                    })
-                />
-            },
-        };
-
-        let height = tile.height.unwrap_or(1);
-        let width = tile.width.unwrap_or(1);
-        let style = format!(
-            "grid-row: auto / span {}; grid-column: auto / span {}",
-            height, width
-        );
-        html! {
-            <div style=style>{inner}</div>
         }
     }
 }

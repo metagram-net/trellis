@@ -192,6 +192,7 @@ impl Component for ConfigForm {
 }
 
 impl ConfigForm {
+    // TODO: Tile component
     fn render_tile(&self, tile: config::Tile) -> Html {
         let id = tile.id.clone();
         let delete_tile = self.link.callback(move |_| Msg::DeleteTile(id));
