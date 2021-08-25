@@ -1,4 +1,5 @@
 use super::add_tile_form::AddTileForm;
+use super::grid;
 use super::secrets_form::SecretsForm;
 use super::weather;
 use trellis_core::config;
@@ -171,13 +172,13 @@ impl Component for ConfigForm {
 
         html! {
             <>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 auto-rows-fr">
+                <grid::Grid>
                     { tiles.iter().map(|t| self.render_tile(t.clone())).collect::<Html>() }
                     <div class="flex flex-col items-center justify-around w-full h-full">
                         <span class="font-bold">{"New Tile"}</span>
                         <AddTileForm onsubmit=add_tile />
                     </div>
-                </div>
+                </grid::Grid>
                 <div class="w-4/5 mx-auto my-2 border-t border-gray-200 dark:border-gray-700"></div>
                 <SecretsForm secrets=self.staged.secrets.clone() onchange=onchange />
                 <div class="w-4/5 mx-auto my-2 border-t border-gray-200 dark:border-gray-700"></div>

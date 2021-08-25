@@ -5,6 +5,7 @@ use yew::prelude::*;
 mod add_tile_form;
 mod clock;
 mod config_form;
+mod grid;
 mod note;
 mod secrets_form;
 mod settings;
@@ -115,12 +116,12 @@ impl App {
         let secrets = self.settings.secrets.clone();
 
         html! {
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-1 auto-rows-fr">
+            <grid::Grid>
                 { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
                 <div class="flex flex-col items-center justify-around w-full h-full">
                     <button type="button" onclick=edit_settings>{ "Edit Settings" }</button>
                 </div>
-            </div>
+            </grid::Grid>
         }
     }
 
