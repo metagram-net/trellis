@@ -5,6 +5,7 @@ use yew::prelude::*;
 mod add_tile_form;
 mod clock;
 mod config_form;
+mod footer;
 mod grid;
 mod note;
 mod secrets_form;
@@ -21,7 +22,8 @@ pub struct App {
 
 #[derive(Properties, Clone, Debug)]
 pub struct Props {
-    pub version_info: &'static str,
+    pub version: &'static str,
+    pub source_url: &'static str,
 }
 
 pub enum Msg {
@@ -99,10 +101,10 @@ impl Component for App {
         html! {
             <div class="min-h-screen flex flex-col justify-between">
                 <main class="m-1">{main}</main>
-                <footer class="flex justify-center space-x-8 text-gray-400 text-sm">
-                    <p>{self.props.version_info}</p>
-                    <p>{"Source code on "}<a href="https://github.com/metagram-net/trellis">{"GitHub"}</a></p>
-                </footer>
+                <footer::Footer
+                    version=self.props.version
+                    source_url=self.props.source_url
+                />
             </div>
         }
     }
