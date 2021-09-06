@@ -19,3 +19,5 @@ static_sites:
   output_dir: /app/dist
   routes:
   - path: /
+  index_document: index.html
+  catchall_document: index.html
