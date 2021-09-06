@@ -6,6 +6,8 @@ module.exports = merge(common, {
   devtool: "inline-source-map",
   devServer: {
     contentBase: path.resolve(__dirname, "dist"),
+    // Render index.html for unrecognized paths.
+    historyApiFallback: true,
     port: 3000,
     proxy: [
       {

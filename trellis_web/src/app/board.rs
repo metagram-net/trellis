@@ -1,66 +1,65 @@
 use super::grid::Grid;
+use super::settings;
 use super::{clock, note, weather};
 use trellis_core::config;
 use uuid::Uuid;
 use yew::prelude::*;
 
-#[derive(Properties, Clone)]
-pub struct Props {
-    pub config: config::Config,
-    pub onchange: Callback<(Uuid, config::Data)>,
-    pub onedit: Callback<()>,
+pub struct Board {
+    link: ComponentLink<Self>,
+    settings: Option<config::Config>,
+    settings_service: Box<dyn Bridge<settings::Settings>>,
 }
 
 pub enum Msg {
+    Load(config::Config),
     Change { id: Uuid, data: config::Data },
-    Edit,
-}
-
-pub struct Board {
-    props: Props,
-    link: ComponentLink<Self>,
 }
 
 impl Component for Board {
     type Message = Msg;
-    type Properties = Props;
+    type Properties = ();
 
-    fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
-        Self { props, link }
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let mut settings_service = settings::Settings::bridge(link.callback(Msg::Load));
+        settings_service.send(settings::Request::Load);
+        Self {
+            link,
+            settings: None,
+            settings_service,
+        }
     }
 
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
-            Msg::Change { id, data } => {
-                self.props.onchange.emit((id, data));
-                false
+            Msg::Load(cfg) => {
+                self.settings = Some(cfg);
+                true
             }
-            Msg::Edit => {
-                self.props.onedit.emit(());
+            Msg::Change { id, data } => {
+                self.settings_service
+                    .send(settings::Request::SaveSingle { id, data });
                 false
             }
         }
     }
 
-    fn change(&mut self, props: Self::Properties) -> ShouldRender {
-        self.props = props;
-        true
+    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
+        false
     }
 
     fn view(&self) -> Html {
-        let tiles = self.props.config.tiles.clone();
-        let secrets = self.props.config.secrets.clone();
-
-        let onclick = self.link.callback(|_| Msg::Edit);
-
-        // TODO: I feel like the switch-mode button doesn't belong inside this component 🤔
-        html! {
-            <Grid>
-                { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
-                <div class="flex flex-col items-center justify-around w-full h-full">
-                    <button type="button" onclick=onclick>{ "Edit Settings" }</button>
-                </div>
-            </Grid>
+        match &self.settings {
+            None => html! { <p class="text-xl">{"Loading..."}</p> },
+            Some(cfg) => {
+                let tiles = cfg.tiles.clone();
+                let secrets = cfg.secrets.clone();
+                html! {
+                    <Grid>
+                        { tiles.iter().map(|t| self.render_tile(t.clone(), secrets.clone())).collect::<Html>() }
+                    </Grid>
+                }
+            }
         }
     }
 }
