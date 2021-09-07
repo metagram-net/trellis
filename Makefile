@@ -54,5 +54,6 @@ app-spec: .do/app.yaml ## Generate the production app spec
 	printenv ROCKET_SECRET_KEY_PRODUCTION
 	> .do/app.yaml \
 		sed \
-		"s/__ROCKET_SECRET_KEY_PRODUCTION__/$${ROCKET_SECRET_KEY_PRODUCTION}/g" \
+		"s|__ROCKET_SECRET_KEY_PRODUCTION__|$${ROCKET_SECRET_KEY_PRODUCTION}|g" \
 		.do/app.template.yaml
+	doctl app spec validate .do/app.yaml

@@ -34,7 +34,7 @@ services:
   - key: ROCKET_DATABASES
     scope: RUN_TIME
     type: SECRET
-    value: '{trellis={url="${db.DATABASE_URL}"}}'
+    value: '{trellis={url="${db.DATABASE_URL}",pool_size=4}}'
   github:
     branch: main
     deploy_on_push: true
