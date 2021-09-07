@@ -121,10 +121,16 @@ async fn authenticate(
     Err(status::Unauthorized(Some("Unauthorized")))
 }
 
+#[get("/health-check")]
+fn health_check() -> &'static str {
+    ""
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .mount("/api/v1", routes![load, save])
         .mount("/", routes![authenticate, authenticate_head])
+        .mount("/.well-known", routes![health_check])
         .attach(DbConn::fairing())
 }
