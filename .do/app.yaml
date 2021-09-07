@@ -9,6 +9,13 @@ domains:
     type: PRIMARY
 name: trellis
 region: nyc
+jobs:
+  - name: migrate
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: metagram-net/trellis
+    dockerfile_path: Dockerfile-migrate
 services:
   - name: trellis-server
     github:
