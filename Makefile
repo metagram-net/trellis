@@ -45,3 +45,14 @@ watch-server: ## Run backend server, automatically rebuilding on file changes
 .PHONY: watch-web
 watch-web: ## Run frontend server, automatically rebuilding on file changes
 	npm run serve
+
+.PHONY: app-manifest
+app-spec: .do/app.yaml ## Generate the production app spec
+
+.do/app.yaml: .do/app.template.yaml
+	@echo 'Checking that environment variables are set:'
+	printenv ROCKET_SECRET_KEY_PRODUCTION
+	> .do/app.yaml \
+		sed \
+		"s/__ROCKET_SECRET_KEY_PRODUCTION__/$${ROCKET_SECRET_KEY_PRODUCTION}/g" \
+		.do/app.template.yaml

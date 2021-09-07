@@ -1,0 +1,62 @@
+databases:
+- engine: PG
+  name: db
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "12"
+domains:
+- domain: trellis.metagram.net
+  type: PRIMARY
+jobs:
+- dockerfile_path: Dockerfile-migrate
+  envs:
+  - key: DATABASE_URL
+    scope: RUN_TIME
+    type: SECRET
+    value: "${db.DATABASE_URL}"
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: metagram-net/trellis
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  kind: PRE_DEPLOY
+  name: migrate
+name: trellis
+region: nyc
+services:
+- dockerfile_path: Dockerfile-server
+  envs:
+  - key: ROCKET_SECRET_KEY
+    scope: RUN_TIME
+    type: SECRET
+    value: '__ROCKET_SECRET_KEY_PRODUCTION__'
+  - key: ROCKET_DATABASES
+    scope: RUN_TIME
+    type: SECRET
+    value: '{trellis={url="${db.DATABASE_URL}"}}'
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: metagram-net/trellis
+  health_check:
+    http_path: /.well-known/health-check
+  http_port: 8000
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: trellis-server
+  routes:
+  - path: /api
+  - path: /authenticate
+static_sites:
+- catchall_document: index.html
+  dockerfile_path: Dockerfile-web
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: metagram-net/trellis
+  index_document: index.html
+  name: trellis-web
+  output_dir: /app/dist
+  routes:
+  - path: /
