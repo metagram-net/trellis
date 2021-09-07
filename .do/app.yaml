@@ -9,6 +9,19 @@ domains:
     type: PRIMARY
 name: trellis
 region: nyc
+services:
+  - name: trellis-server
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: metagram-net/trellis
+    dockerfile_path: Dockerfile-server
+    routes:
+      - path: /api
+      - path: /authenticate
+    http_port: 8000
+    health_check:
+      http_path: /.well-known/health-check
 static_sites:
   - name: trellis-web
     github:
