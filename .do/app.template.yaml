@@ -31,6 +31,10 @@ services:
     scope: RUN_TIME
     type: SECRET
     value: '__ROCKET_SECRET_KEY_PRODUCTION__'
+  - key: ROCKET_ADDRESS
+    scope: RUN_TIME
+    type: GENERAL
+    value: '0.0.0.0'
   - key: ROCKET_DATABASES
     scope: RUN_TIME
     type: SECRET
