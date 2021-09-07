@@ -1,7 +1,14 @@
 FROM rust:1.53 AS build
 
+# Copied from Makefile to reduce unnecessary cache invalidation.
+RUN cargo install diesel_cli --version 1.4.1
+
 WORKDIR /app
+
 COPY migrations migrations
-COPY diesel.toml Makefile ./
+COPY trellis_server/src/schema.rs trellis_server/src/schema.rs
+COPY diesel.toml diesel.toml
+COPY Makefile Makefile
+
 RUN make deps
 CMD [ "make", "migrate" ]
