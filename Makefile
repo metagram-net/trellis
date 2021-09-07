@@ -9,14 +9,26 @@ help: ## List targets in this Makefile
 		| sort --dictionary-order \
 		| column --separator $$'\t' --table --table-wrap 2 --output-separator '    '
 
+.PHONY: deps
+deps: ## Install prerequisites and development tools
+	cargo install diesel_cli --version 1.4.1
+
 .PHONY: clean
 clean: ## Remove output files
 	rm -rf dist
 
-.PHONY: release
-release: clean ## Build app in release mode
+.PHONY: server
+server: ## Build server in release mode
+	cargo build --release --bin trellis_server
+
+.PHONY: web
+web: clean ## Build webapp in release mode
 	npm ci
 	npm run build
+
+.PHONY: migrate
+migrate: ## Run database migrations
+	diesel migration run --locked-schema
 
 .PHONY: watch
 watch: ## Run both development servers, automatically rebuilding on file changes
