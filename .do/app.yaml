@@ -1,23 +1,23 @@
 databases:
-- engine: PG
-  name: db
-  num_nodes: 1
-  size: db-s-dev-database
-  version: "12"
+  - engine: PG
+    name: db
+    num_nodes: 1
+    size: db-s-dev-database
+    version: "12"
 domains:
-- domain: trellis.metagram.net
-  type: PRIMARY
+  - domain: trellis.metagram.net
+    type: PRIMARY
 name: trellis
 region: nyc
 static_sites:
-- dockerfile_path: Dockerfile
-  github:
-    branch: main
-    deploy_on_push: true
-    repo: metagram-net/trellis
-  name: trellis
-  output_dir: /app/dist
-  routes:
-  - path: /
-  index_document: index.html
-  catchall_document: index.html
+  - name: trellis-web
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: metagram-net/trellis
+    dockerfile_path: Dockerfile
+    output_dir: /app/dist
+    routes:
+      - path: /
+    index_document: index.html
+    catchall_document: index.html
