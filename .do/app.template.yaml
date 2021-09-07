@@ -39,8 +39,6 @@ services:
     branch: main
     deploy_on_push: true
     repo: metagram-net/trellis
-  health_check:
-    http_path: /.well-known/health-check
   http_port: 8000
   instance_count: 1
   instance_size_slug: basic-xxs
