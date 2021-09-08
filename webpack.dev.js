@@ -9,13 +9,13 @@ module.exports = merge(common, {
     // Render index.html for unrecognized paths.
     historyApiFallback: true,
     port: 3000,
-    proxy: [
-      {
-        context: ["/api", "/authenticate"],
-        target: "http://localhost:8000",
+    proxy: {
+      "/api": {
+        pathRewrite: { "^/api": "" },
         secure: false,
+        target: "http://localhost:8000",
       },
-    ],
+    },
   },
   mode: "development",
 });

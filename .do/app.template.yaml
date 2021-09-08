@@ -49,7 +49,6 @@ services:
   name: trellis-server
   routes:
   - path: /api
-  - path: /authenticate
 static_sites:
 - catchall_document: index.html
   dockerfile_path: Dockerfile-web
