@@ -8,12 +8,12 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use rocket::figment::providers::Env;
 use rocket::figment::Figment;
-use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar, Status};
 use rocket::response::{status, Redirect};
 use rocket::serde::json::Json;
 use rocket::State;
 use rocket_sync_db_pools::database;
+use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
 use serde_json::Value::{self, Object};
 use trellis_core::config;
@@ -127,29 +127,67 @@ async fn authenticate(
     Err(status::Unauthorized(Some("Unauthorized")))
 }
 
-#[derive(FromForm)]
-struct LoginForm<'r> {
+// TODO: Merge these structs with the trellis_web versions
+
+#[derive(Deserialize)]
+struct LoginRequest<'r> {
     email: &'r str,
 }
 
-#[get("/login", data = "<form>")]
+#[derive(Serialize, Clone)]
+pub struct LoginSuccess {
+    email: String,
+}
+
+#[derive(Serialize, Clone)]
+pub struct LoginError {
+    email: String,
+    message: String,
+}
+
+#[post("/login", format = "json", data = "<form>")]
 async fn login(
     auth: &State<auth::Auth>,
-    form: Form<LoginForm<'_>>,
-) -> Result<Json<()>, status::Custom<&'static str>> {
+    form: Json<LoginRequest<'_>>,
+) -> Result<Json<LoginSuccess>, status::Custom<Json<LoginError>>> {
     // TODO: CSRF protection?
     if form.email.is_empty() {
-        return Err(status::Custom(Status::BadRequest, "email is required"));
+        return Err(status::Custom(
+            Status::BadRequest,
+            Json(LoginError {
+                email: form.email.to_owned(),
+                message: "The email field is required.".to_owned(),
+            }),
+        ));
     }
 
     match auth.send_email(form.email).await {
-        Ok(_) => Ok(Json(())),
+        Ok(_) => Ok(Json(LoginSuccess {
+            email: form.email.to_owned(),
+        })),
+        Err(auth::Error::Stytch(stytch::Error::Response(res)))
+            if &res.error_type == "email_not_found" =>
+        {
+            Err(status::Custom(
+                Status::BadRequest,
+                Json(LoginError {
+                    email: form.email.to_owned(),
+                    message: format!(
+                        "Sorry, {} hasn't been registered yet and signups are currently closed. Please contact a developer if you'd like to join!",
+                        form.email
+                    ),
+                }),
+            ))
+        }
         Err(err) => {
             log::error!("{}", err);
-            return Err(status::Custom(
+            Err(status::Custom(
                 Status::InternalServerError,
-                "Internal Server Error",
-            ));
+                Json(LoginError {
+                    email: form.email.to_owned(),
+                    message: "An unexpected error occurred.".to_owned(),
+                }),
+            ))
         }
     }
 }

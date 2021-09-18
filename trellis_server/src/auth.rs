@@ -2,8 +2,6 @@ use serde::{Deserialize, Serialize};
 use stytch;
 use thiserror;
 
-const ALLOW_LOGINS: bool = false; // TODO: enable!
-
 pub struct Auth {
     client: stytch::Client,
     login_url: String,
@@ -37,9 +35,6 @@ impl Auth {
     }
 
     pub async fn authenticate_token(&self, token: &str) -> Result<User> {
-        if !ALLOW_LOGINS {
-            return Err(Error::Disabled);
-        }
         let req = stytch::magic_links::Authenticate { token };
         let res: stytch::magic_links::AuthenticateResponse = self.client.reqwest(req).await?;
         Ok(User {
@@ -48,9 +43,6 @@ impl Auth {
     }
 
     pub async fn send_email(&self, email: &str) -> Result<User> {
-        if !ALLOW_LOGINS {
-            return Err(Error::Disabled);
-        }
         let req = stytch::magic_links::email::Send {
             email,
             login_magic_link_url: &self.login_url,
@@ -70,8 +62,6 @@ pub struct User {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("authentication disabled")]
-    Disabled,
     #[error(transparent)]
     Stytch(#[from] stytch::Error),
 }
