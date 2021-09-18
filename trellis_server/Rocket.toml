@@ -1,0 +1,6 @@
+[release]
+address = "0.0.0.0"
+http_port = 8080
+
+[release.databases.trellis]
+pool_size = 4
