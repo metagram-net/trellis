@@ -6,6 +6,8 @@ extern crate rocket;
 use anyhow;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use rocket::figment::providers::Env;
+use rocket::figment::Figment;
 use rocket::form::Form;
 use rocket::http::{Cookie, CookieJar, Status};
 use rocket::response::{status, Redirect};
@@ -14,7 +16,6 @@ use rocket::State;
 use rocket_sync_db_pools::database;
 use serde_json::map::Map;
 use serde_json::Value::{self, Object};
-use std::env;
 use trellis_core::config;
 
 mod auth;
@@ -113,11 +114,11 @@ fn authenticate_head() -> Redirect {
 #[get("/authenticate?<token>")]
 async fn authenticate(
     cookies: &CookieJar<'_>,
-    stytch: &State<stytch::Client>,
+    auth: &State<auth::Auth>,
     token: Option<&str>,
 ) -> Result<Redirect, status::Unauthorized<&'static str>> {
     if let Some(t) = token {
-        if let Ok(user) = auth::authenticate_token(stytch, t).await {
+        if let Ok(user) = auth.authenticate_token(t).await {
             // TODO: get the session token instead
             cookies.add_private(Cookie::build("session", user.user_id).secure(true).finish());
             return Ok(Redirect::to("/"));
@@ -133,7 +134,7 @@ struct LoginForm<'r> {
 
 #[get("/login", data = "<form>")]
 async fn login(
-    stytch: &State<stytch::Client>,
+    auth: &State<auth::Auth>,
     form: Form<LoginForm<'_>>,
 ) -> Result<Json<()>, status::Custom<&'static str>> {
     // TODO: CSRF protection?
@@ -141,7 +142,7 @@ async fn login(
         return Err(status::Custom(Status::BadRequest, "email is required"));
     }
 
-    match auth::send_email(stytch, form.email).await {
+    match auth.send_email(form.email).await {
         Ok(_) => Ok(Json(())),
         Err(err) => {
             log::error!("{}", err);
@@ -153,21 +154,14 @@ async fn login(
     }
 }
 
-fn must_env(var: &str) -> String {
-    env::var(var).expect(var)
-}
-
 #[launch]
 fn rocket() -> _ {
+    let auth_cfg: auth::Config = Figment::from(Env::prefixed("STYTCH_"))
+        .extract()
+        .expect("stytch config");
+
     rocket::build()
-        .manage(
-            stytch::Client::new(
-                must_env("STYTCH_PROJECT_ID"),
-                must_env("STYTCH_SECRET"),
-                stytch::env::TEST,
-            )
-            .unwrap(),
-        )
+        .manage(auth::Auth::new(auth_cfg).unwrap())
         .mount(
             "/v1",
             routes![load, save, authenticate, authenticate_head, login],
