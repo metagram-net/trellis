@@ -1,0 +1,7 @@
+error: custom attribute panicked
+ --> $DIR/post_no_args.rs:4:1
+  |
+4 | #[post()]
+  | ^^^^^^^^^
+  |
+  = help: message: expected 1 string argument, got []

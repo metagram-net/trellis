@@ -1,0 +1,7 @@
+error: custom attribute panicked
+ --> $DIR/post_wrong_type.rs:4:1
+  |
+4 | #[post(1)]
+  | ^^^^^^^^^^
+  |
+  = help: message: expected 1 string argument, got [1]

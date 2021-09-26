@@ -1,0 +1,7 @@
+error: custom attribute panicked
+ --> $DIR/post_extra_args.rs:4:1
+  |
+4 | #[post("/top-level", "extra-arg")]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: message: expected 1 string argument, got ["/top-level", "extra-arg"]
