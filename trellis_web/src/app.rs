@@ -7,10 +7,12 @@ mod auth;
 mod board;
 mod clock;
 mod config_form;
+mod csrf;
 mod grid;
 mod login;
 mod login_confirmation;
 mod login_form;
+mod logout_form;
 mod note;
 mod secrets_form;
 mod settings;
@@ -72,11 +74,7 @@ impl Component for App {
         let logged_in = self.user.is_some();
         let log_in_out = move || {
             if logged_in {
-                html! {
-                    <form method="post" action="/api/v1/logout" class="inline-block">
-                        <button type="submit">{"Log out"}</button>
-                    </form>
-                }
+                html! { <logout_form::LogoutForm /> }
             } else {
                 html! { <Anchor route=AppRoute::Login>{"Log in"}</Anchor> }
             }

@@ -1,3 +1,4 @@
+use super::csrf;
 use anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
@@ -50,6 +51,7 @@ impl Settings {
 
         let req = fetch::Request::post("/api/v1/save")
             .header("Content-Type", "application/json")
+            .header(csrf::HEADER_NAME, csrf::token())
             .body(Json(s))
             .expect("could not build request");
 

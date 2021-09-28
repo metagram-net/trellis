@@ -19,6 +19,7 @@ use serde_json::Value::{self, Object};
 use trellis_core::config;
 
 mod auth;
+mod csrf;
 pub mod models;
 pub mod schema;
 
@@ -75,6 +76,7 @@ async fn save(
     cookies: &CookieJar<'_>,
     auth: &State<auth::Auth>,
     data: Json<Value>,
+    _csrf: csrf::Protection,
 ) -> Result<Json<Value>, status::Unauthorized<&'static str>> {
     use schema::settings::dsl;
 
@@ -161,8 +163,8 @@ pub struct LoginError {
 async fn login(
     auth: &State<auth::Auth>,
     form: Json<LoginRequest<'_>>,
+    _csrf: csrf::Protection,
 ) -> Result<Json<LoginSuccess>, status::Custom<Json<LoginError>>> {
-    // TODO: CSRF protection?
     if form.email.is_empty() {
         return Err(status::Custom(
             Status::BadRequest,
@@ -213,9 +215,8 @@ pub struct LogoutError {
 async fn logout(
     cookies: &CookieJar<'_>,
     auth: &State<auth::Auth>,
+    _csrf: csrf::Protection,
 ) -> Result<Redirect, status::Custom<Json<LogoutError>>> {
-    // TODO: CSRF protection?
-
     match auth.logout(cookies).await {
         Ok(_) => Ok(Redirect::to("/")),
         Err(err) => {
@@ -245,8 +246,6 @@ async fn whoami(
     cookies: &CookieJar<'_>,
     auth: &State<auth::Auth>,
 ) -> Result<Json<WhoamiSuccess>, status::Custom<Json<WhoamiError>>> {
-    // TODO: CSRF protection?
-
     match auth.current_user(cookies).await {
         Ok(session) => Ok(Json(WhoamiSuccess {
             user_id: session.user_id,
@@ -284,4 +283,5 @@ fn rocket() -> _ {
             ],
         )
         .attach(DbConn::fairing())
+        .attach(csrf::fairing())
 }

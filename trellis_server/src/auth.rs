@@ -100,17 +100,13 @@ impl Auth {
         );
     }
 
-    fn clear_cookie(&self, cookies: &CookieJar<'_>) -> () {
-        cookies.remove_private(Cookie::named(SESSION_COOKIE_NAME));
-    }
-
     pub async fn logout(&self, cookies: &CookieJar<'_>) -> Result<()> {
         let token = match cookies.get_private(SESSION_COOKIE_NAME) {
             None => return Ok(()),
             Some(cookie) => String::from(cookie.value()),
         };
         self.revoke_session(&token).await?;
-        self.clear_cookie(cookies);
+        cookies.remove_private(Cookie::named(SESSION_COOKIE_NAME));
         Ok(())
     }
 }
@@ -154,3 +150,5 @@ fn convert_session(session: stytch::sessions::Session, session_token: Option<Str
         user_id: session.user_id,
     }
 }
+
+// TODO: CurrentUser request guard

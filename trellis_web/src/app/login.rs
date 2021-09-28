@@ -1,3 +1,4 @@
+use super::csrf;
 use super::login_confirmation::LoginConfirmation;
 use super::login_form::LoginForm;
 use anyhow;
@@ -95,6 +96,7 @@ impl Login {
         let body = LoginRequest { email };
         let req = Request::post("/api/v1/login")
             .header("Content-Type", "application/json")
+            .header(csrf::HEADER_NAME, csrf::token())
             .body(Json(&body))
             .expect("could not build request");
 
