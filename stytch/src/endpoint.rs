@@ -24,6 +24,10 @@ impl Body {
     pub fn from_json(data: serde_json::Value) -> Self {
         Self(Some(data))
     }
+
+    pub fn from_data<T: Serialize>(data: T) -> serde_json::Result<Self> {
+        Ok(Self(Some(serde_json::to_value(data)?)))
+    }
 }
 
 pub trait Endpoint {
@@ -32,7 +36,7 @@ pub trait Endpoint {
     fn query(&self) -> Query {
         Query::default()
     }
-    fn body(&self) -> Body {
-        Body::default()
+    fn body(&self) -> serde_json::Result<Body> {
+        Ok(Body::default())
     }
 }

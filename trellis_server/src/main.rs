@@ -8,7 +8,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use rocket::figment::providers::Env;
 use rocket::figment::Figment;
-use rocket::http::{Cookie, CookieJar, Status};
+use rocket::http::{CookieJar, Status};
 use rocket::response::{status, Redirect};
 use rocket::serde::json::Json;
 use rocket::State;
@@ -46,13 +46,17 @@ async fn load_settings(db: DbConn, uid: String) -> anyhow::Result<Option<config:
 async fn load(
     db: DbConn,
     cookies: &CookieJar<'_>,
+    auth: &State<auth::Auth>,
 ) -> Result<Option<Json<config::Config>>, status::Custom<&'static str>> {
-    let user_id = match cookies.get_private("session") {
-        None => return Err(status::Custom(Status::Unauthorized, "Unauthorized")),
-        Some(cookie) => String::from(cookie.value()),
+    let session = match auth.current_user(cookies).await {
+        Err(err) => {
+            log::error!("{}", err);
+            return Err(status::Custom(Status::Unauthorized, "Unauthorized"));
+        }
+        Ok(s) => s,
     };
 
-    match load_settings(db, user_id).await {
+    match load_settings(db, session.user_id).await {
         Ok(Some(settings)) => Ok(Some(Json(settings))),
         Ok(None) => Ok(None),
         Err(err) => {
@@ -69,18 +73,22 @@ async fn load(
 async fn save(
     db: DbConn,
     cookies: &CookieJar<'_>,
+    auth: &State<auth::Auth>,
     data: Json<Value>,
 ) -> Result<Json<Value>, status::Unauthorized<&'static str>> {
     use schema::settings::dsl;
 
-    let uid = match cookies.get_private("session") {
-        None => return Err(status::Unauthorized(Some("Unauthorized"))),
-        Some(cookie) => String::from(cookie.value()),
+    let session = match auth.current_user(cookies).await {
+        Err(err) => {
+            log::error!("{}", err);
+            return Err(status::Unauthorized(Some("Unauthorized")));
+        }
+        Ok(s) => s,
     };
 
     let new_settings = models::NewSettings {
         data: data.into_inner(),
-        user_id: uid,
+        user_id: session.user_id,
     };
 
     let res = db
@@ -116,15 +124,19 @@ async fn authenticate(
     cookies: &CookieJar<'_>,
     auth: &State<auth::Auth>,
     token: Option<&str>,
-) -> Result<Redirect, status::Unauthorized<&'static str>> {
+) -> Redirect {
     if let Some(t) = token {
-        if let Ok(user) = auth.authenticate_token(t).await {
-            // TODO: get the session token instead
-            cookies.add_private(Cookie::build("session", user.user_id).secure(true).finish());
-            return Ok(Redirect::to("/"));
+        match auth.authenticate_magic(t).await {
+            Ok(session) => {
+                auth.set_cookie(cookies, session);
+                return Redirect::to("/");
+            }
+            Err(err) => log::error!("{}", err),
         }
+    } else {
+        log::debug!("no magic token")
     }
-    Err(status::Unauthorized(Some("Unauthorized")))
+    Redirect::to("/login")
 }
 
 // TODO: Merge these structs with the trellis_web versions
@@ -192,6 +204,65 @@ async fn login(
     }
 }
 
+#[derive(Serialize, Clone)]
+pub struct LogoutError {
+    message: String,
+}
+
+#[post("/logout")]
+async fn logout(
+    cookies: &CookieJar<'_>,
+    auth: &State<auth::Auth>,
+) -> Result<Redirect, status::Custom<Json<LogoutError>>> {
+    // TODO: CSRF protection?
+
+    match auth.logout(cookies).await {
+        Ok(_) => Ok(Redirect::to("/")),
+        Err(err) => {
+            log::error!("{}", err);
+            Err(status::Custom(
+                Status::InternalServerError,
+                Json(LogoutError {
+                    message: "An unexpected error occurred.".to_owned(),
+                }),
+            ))
+        }
+    }
+}
+
+#[derive(Serialize, Clone)]
+pub struct WhoamiSuccess {
+    user_id: String,
+}
+
+#[derive(Serialize, Clone)]
+pub struct WhoamiError {
+    message: String,
+}
+
+#[get("/whoami")]
+async fn whoami(
+    cookies: &CookieJar<'_>,
+    auth: &State<auth::Auth>,
+) -> Result<Json<WhoamiSuccess>, status::Custom<Json<WhoamiError>>> {
+    // TODO: CSRF protection?
+
+    match auth.current_user(cookies).await {
+        Ok(session) => Ok(Json(WhoamiSuccess {
+            user_id: session.user_id,
+        })),
+        Err(err) => {
+            log::error!("{}", err);
+            Err(status::Custom(
+                Status::Unauthorized,
+                Json(WhoamiError {
+                    message: "An unexpected error occurred.".to_owned(),
+                }),
+            ))
+        }
+    }
+}
+
 #[launch]
 fn rocket() -> _ {
     let auth_cfg: auth::Config = Figment::from(Env::prefixed("STYTCH_"))
@@ -202,7 +273,15 @@ fn rocket() -> _ {
         .manage(auth::Auth::new(auth_cfg).unwrap())
         .mount(
             "/v1",
-            routes![load, save, authenticate, authenticate_head, login],
+            routes![
+                load,
+                save,
+                authenticate,
+                authenticate_head,
+                login,
+                logout,
+                whoami
+            ],
         )
         .attach(DbConn::fairing())
 }

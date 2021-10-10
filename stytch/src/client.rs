@@ -25,17 +25,17 @@ impl Client {
         })
     }
 
-    pub async fn reqwest<T: DeserializeOwned>(&self, e: impl Endpoint) -> Result<T> {
+    pub async fn reqwest<Res: DeserializeOwned>(&self, e: impl Endpoint) -> Result<Res> {
         let url = self.base_url.join(&e.path())?.to_string();
         let req = self
             .client
             .request(e.method(), url)
             .basic_auth(&self.project_id, Some(&self.secret))
             .query(&e.query())
-            .json(&e.body());
+            .json(&e.body()?);
         let res = req.send().await?;
         if res.status().is_success() {
-            Ok(res.json::<T>().await?)
+            Ok(res.json::<Res>().await?)
         } else {
             Err(Error::Response(res.json::<ErrorResponse>().await?))
         }

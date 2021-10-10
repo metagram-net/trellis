@@ -1,19 +1,19 @@
 use serde::{Deserialize, Serialize};
 
 pub mod client;
-mod endpoint;
 pub mod env;
 pub mod magic_links;
-mod status_code;
+pub mod sessions;
 
-#[cfg(test)]
-mod tests;
+mod endpoint;
+mod status_code;
 
 const USER_AGENT: &'static str = include_str!(concat!(env!("OUT_DIR"), "/user-agent"));
 
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[error("{} {}: {} ({})", .0.status_code, .0.error_type, .0.error_message, .0.error_url)]
     Response(ErrorResponse),
@@ -21,6 +21,8 @@ pub enum Error {
     Reqwest(#[from] reqwest::Error),
     #[error(transparent)]
     Url(#[from] url::ParseError),
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
 }
 
 #[derive(Debug, Deserialize, Serialize)]
