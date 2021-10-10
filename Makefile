@@ -17,6 +17,10 @@ deps: ## Install prerequisites and development tools
 clean: ## Remove output files
 	rm -rf dist
 
+.PHONY: services
+services: ## Start development services (database, etc.)
+	docker-compose --env-file=/dev/null up -d
+
 .PHONY: server
 server: ## Build server in release mode
 	cargo build --release --bin trellis_server
@@ -31,8 +35,7 @@ migrate: ## Run database migrations
 	diesel migration run --locked-schema
 
 .PHONY: watch
-watch: ## Run both development servers, automatically rebuilding on file changes
-	docker-compose up -d
+watch: services ## Run both development servers, automatically rebuilding on file changes
 	parallel --line-buffer --tagstring '[{}]' --verbose make ::: \
 		watch-server \
 		watch-web \
