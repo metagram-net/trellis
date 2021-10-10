@@ -3,6 +3,7 @@ use yew_router::prelude::*;
 
 mod about;
 mod add_tile_form;
+mod auth;
 mod board;
 mod clock;
 mod config_form;
@@ -16,7 +17,15 @@ mod settings;
 mod settings_page;
 mod weather;
 
-pub struct App {}
+pub struct App {
+    user: Option<auth::User>,
+    #[allow(dead_code)]
+    auth_service: Box<dyn Bridge<auth::Auth>>,
+}
+
+pub enum Msg {
+    Whoami(Option<auth::User>),
+}
 
 #[derive(Switch, Debug, Clone)]
 pub enum AppRoute {
@@ -33,15 +42,26 @@ pub enum AppRoute {
 type Anchor = RouterAnchor<AppRoute>;
 
 impl Component for App {
-    type Message = ();
+    type Message = Msg;
     type Properties = ();
 
-    fn create(_props: Self::Properties, _link: ComponentLink<Self>) -> Self {
-        Self {}
+    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+        let mut auth_service = auth::Auth::bridge(link.callback(Msg::Whoami));
+        auth_service.send(auth::Request::Whoami);
+
+        Self {
+            user: None,
+            auth_service,
+        }
     }
 
-    fn update(&mut self, _msg: Self::Message) -> ShouldRender {
-        false
+    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+        match msg {
+            Msg::Whoami(user) => {
+                self.user = user;
+                true
+            }
+        }
     }
 
     fn change(&mut self, _props: Self::Properties) -> ShouldRender {
@@ -49,7 +69,18 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        // TODO: "Log in" -> "Log out" when logged-in
+        let logged_in = self.user.is_some();
+        let log_in_out = move || {
+            if logged_in {
+                html! {
+                    <form method="post" action="/api/v1/logout" class="inline-block">
+                        <button type="submit">{"Log out"}</button>
+                    </form>
+                }
+            } else {
+                html! { <Anchor route=AppRoute::Login>{"Log in"}</Anchor> }
+            }
+        };
         html! {
             <div class="min-h-screen text-black bg-white dark:text-white dark:bg-black flex flex-col">
                 <Router<AppRoute, ()> render=Router::render(move |route: AppRoute| {
@@ -65,7 +96,7 @@ impl Component for App {
                             <div class="space-x-4">
                                 <Anchor route=AppRoute::About>{"About"}</Anchor>
                                 <Anchor route=AppRoute::Settings>{"Settings"}</Anchor>
-                                <Anchor route=AppRoute::Login>{"Log in"}</Anchor>
+                                { log_in_out() }
                             </div>
                         </nav>
                         <div class="flex-grow flex flex-col justify-between">
