@@ -1,0 +1,47 @@
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+highlight = "all"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+
+[licenses]
+# Require extra-high confidence. Default was 0.8
+confidence-threshold = 0.93
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+]
+unlicensed = "deny"
+default = "deny"
+
+[licenses.private]
+ignore = true
+
+[[licenses.clarify]]
+name = "ring"
+# All three of these licenses apply to different files.
+# ISC - Both BoringSSL and ring use this for their new files.
+# MIT - third_party/fiat is compiled into non-test libraries.
+# OpenSSL - The OpenSSL files.
+expression = "ISC AND MIT AND OpenSSL"
+license-files = [
+    { path = "LICENSE", hash = 0xbd0eed23 }
+]
+
+[[licenses.clarify]]
+name = "webpki"
+# Crate is ISC. Chromium test data (BSD-3-Clause) is not distributed.
+expression = "ISC"
+license-files = [
+    { path = "LICENSE", hash = 0x001c7e6c },
+]
+
+[[licenses.exceptions]]
+name = "ring"
+allow = ["OpenSSL"]
