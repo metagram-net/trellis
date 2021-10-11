@@ -3,6 +3,7 @@ name = "trellis_web"
 version = "0.1.0"
 edition = "2018"
 publish = false
+license = "AGPL-3.0"
 
 [lib]
 crate-type = ["cdylib"]
